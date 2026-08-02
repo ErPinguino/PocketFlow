@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Bienvenido a PocketFlow";
+    ViewData["Step"] = 1;
+    Layout = "_OnboardingLayout";
+}
+
+<div class="text-center">
+    <h4 class="mb-3">¡Bienvenido a PocketFlow!</h4>
+    <p class="text-muted mb-4">Vamos a configurar tu cuenta en 5 sencillos pasos para que tomes el control de tu dinero hoy mismo.</p>
+    
+    <a asp-action="Account" class="btn btn-primary w-100 mb-3 py-2">Comenzar</a>
+    
+    <form asp-controller="Account" asp-action="Logout" method="post">
+        <button type="submit" class="btn btn-link text-muted text-decoration-none">Salir y continuar más tarde</button>
+    </form>
+</div>

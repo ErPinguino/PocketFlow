@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Onboarding";
+}
+
+<div class="container mt-5 text-center">
+    <h2 class="text-primary fw-bold">Onboarding Provisional</h2>
+    <div class="card shadow-sm p-4 mt-4 mx-auto" style="max-width: 600px;">
+        <p>Aquí irá el asistente financiero en el Sprint 2.</p>
+        <p class="text-muted">Tu cuenta ha sido creada y has iniciado sesión, pero debes completar este paso antes de ir al Dashboard.</p>
+        
+        <form asp-controller="Account" asp-action="Logout" method="post" class="mt-4">
+            <button type="submit" class="btn btn-outline-secondary">Cerrar Sesión</button>
+        </form>
+    </div>
+</div>

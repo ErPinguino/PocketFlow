@@ -1,0 +1,62 @@
+@model PocketFlow.ViewModels.Onboarding.OnboardingPiggyBanksViewModel
+@{
+    ViewData["Title"] = "Tus huchas";
+    ViewData["Step"] = 4;
+    Layout = "_OnboardingLayout";
+}
+
+<h4 class="mb-4">Tus Huchas (Ahorro programado)</h4>
+<p class="text-muted">Las huchas son para guardar dinero mes a mes para objetivos concretos (ej. seguro del coche, vacaciones, emergencia).</p>
+
+<form asp-action="PiggyBanks" method="post" id="piggy-banks-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div id="piggy-banks-container">
+        @for (int i = 0; i < Model.PiggyBanks.Count; i++)
+        {
+            <div class="pb-card mb-3">
+                <button type="button" class="btn btn-sm btn-outline-danger pb-delete-btn">Eliminar</button>
+                <input type="hidden" name="PiggyBanks.Index" value="@i" />
+                <input type="hidden" name="PiggyBanks[@i].TemporaryId" value="@Model.PiggyBanks[i].TemporaryId" />
+                
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input name="PiggyBanks[@i].Name" class="form-control" value="@Model.PiggyBanks[i].Name" required />
+                    <span class="text-danger small field-validation-valid" data-valmsg-for="PiggyBanks[@i].Name" data-valmsg-replace="true"></span>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Objetivo total (€)</label>
+                        <input type="number" step="0.01" name="PiggyBanks[@i].TargetAmount" class="form-control" value="@Model.PiggyBanks[i].TargetAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ahorrado actualmente (€)</label>
+                        <input type="number" step="0.01" name="PiggyBanks[@i].CurrentAmount" class="form-control" value="@Model.PiggyBanks[i].CurrentAmount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Aportación mensual (€)</label>
+                        <input type="number" step="0.01" name="PiggyBanks[@i].MonthlyContribution" class="form-control" value="@Model.PiggyBanks[i].MonthlyContribution.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Icono (opcional)</label>
+                        <input name="PiggyBanks[@i].Icon" class="form-control" value="@Model.PiggyBanks[i].Icon" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button type="button" id="add-piggy-bank-btn" class="btn btn-outline-primary w-100 mb-4">
+        + Añadir otra hucha
+    </button>
+
+    <div class="d-flex justify-content-between">
+        <a asp-action="FixedExpenses" class="btn btn-outline-secondary">Atrás</a>
+        <button type="submit" class="btn btn-primary px-4">Continuar</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/onboarding-piggy-banks.js"></script>
+}

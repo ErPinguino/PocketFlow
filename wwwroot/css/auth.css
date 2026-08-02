@@ -1,0 +1,6 @@
+body { background-color: #f4fcf7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+.auth-card { width: 100%; max-width: 400px; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: #ffffff; }
+.btn-primary { background-color: #10b981; border-color: #10b981; }
+.btn-primary:hover { background-color: #059669; border-color: #059669; }
+.text-primary { color: #10b981 !important; }
+.form-control:focus { border-color: #10b981; box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }

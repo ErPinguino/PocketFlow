@@ -1,0 +1,11 @@
+.bg-light { background-color: #f8fafc !important; }
+.onboarding-card { border-radius: 16px; }
+.text-primary { color: #10b981 !important; }
+.bg-primary { background-color: #10b981 !important; }
+.btn-primary { background-color: #10b981; border-color: #10b981; }
+.btn-primary:hover { background-color: #059669; border-color: #059669; }
+.btn-outline-primary { color: #10b981; border-color: #10b981; }
+.btn-outline-primary:hover { background-color: #10b981; color: white; border-color: #10b981; }
+.form-control:focus { border-color: #10b981; box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }
+.pb-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; position: relative; }
+.pb-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; }
