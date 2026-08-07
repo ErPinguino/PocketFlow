@@ -38,24 +38,24 @@
     </div>
 
     <!-- 5. Estado del mes -->
-    <div class="mb-4 @GetStatusClass(Model.MonthlyStatus)">
-        <i class="bi @GetStatusIcon(Model.MonthlyStatus) me-2"></i>
-        <strong>@Model.StatusMessage</strong>
+    <div id="monthlyStatusContainer" class="mb-4 @GetStatusClass(Model.MonthlyStatus)">
+        <i id="monthlyStatusIcon" class="bi @GetStatusIcon(Model.MonthlyStatus) me-2"></i>
+        <strong id="monthlyStatusMessage">@Model.StatusMessage</strong>
     </div>
 
     <!-- 2. Tarjeta Principal (Bolsillo Libre) -->
     <div class="card dashboard-card shadow-sm mb-4 border-0">
         <div class="card-body p-4">
             <h5 class="text-muted small fw-bold text-uppercase mb-3">Dinero disponible</h5>
-            <h2 class="display-4 fw-bold @(Model.FreePocketRemaining < 0 ? "text-danger" : "text-success") mb-1">
+            <h2 id="freePocketRemaining" class="display-4 fw-bold @(Model.FreePocketRemaining < 0 ? "text-danger" : "text-success") mb-1">
                 @Model.FreePocketRemaining.ToString("C", culture)
             </h2>
             <div class="d-flex justify-content-between text-muted small mb-3">
-                <span>Inicial: @Model.FreePocketInitial.ToString("C", culture)</span>
-                <span>Gastado: @Model.FreePocketSpent.ToString("C", culture)</span>
+                <span id="freePocketInitial">Inicial: @Model.FreePocketInitial.ToString("C", culture)</span>
+                <span id="freePocketSpent">Gastado: @Model.FreePocketSpent.ToString("C", culture)</span>
             </div>
             <div class="progress progress-slim">
-                <div class="progress-bar @(Model.FreePocketRemaining < 0 ? "bg-danger" : "bg-primary")" 
+                <div id="freePocketProgress" class="progress-bar @(Model.FreePocketRemaining < 0 ? "bg-danger" : "bg-primary")" 
                      role="progressbar" 
                      style="width: @GetProgress(Model.FreePocketSpent, Model.FreePocketInitial)%"></div>
             </div>
@@ -67,16 +67,16 @@
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="mb-0 fw-bold">Presupuesto Semanal</h6>
-                <span class="badge @(Model.WeeklyRemaining < 0 ? "bg-danger" : "bg-primary") px-2 py-1 rounded-pill">
+                <span id="weeklyRemainingBadge" class="badge @(Model.WeeklyRemaining < 0 ? "bg-danger" : "bg-primary") px-2 py-1 rounded-pill">
                     Restan @Model.WeeklyRemaining.ToString("C", culture)
                 </span>
             </div>
             <div class="d-flex justify-content-between text-muted small mb-2">
-                <span>Inicial: @Model.WeeklyBudget.ToString("C", culture)</span>
-                <span>Gastado: @Model.WeeklySpent.ToString("C", culture)</span>
+                <span id="weeklyInitial">Inicial: @Model.WeeklyBudget.ToString("C", culture)</span>
+                <span id="weeklySpent">Gastado: @Model.WeeklySpent.ToString("C", culture)</span>
             </div>
             <div class="progress progress-slim">
-                <div class="progress-bar @(Model.WeeklyRemaining < 0 ? "bg-danger" : "bg-primary")" 
+                <div id="weeklyProgress" class="progress-bar @(Model.WeeklyRemaining < 0 ? "bg-danger" : "bg-primary")" 
                      role="progressbar" 
                      style="width: @GetProgress(Model.WeeklySpent, Model.WeeklyBudget)%"></div>
             </div>
@@ -89,10 +89,10 @@
             <div class="card dashboard-card shadow-sm border-0 h-100">
                 <div class="card-body p-3">
                     <div class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-cart me-1"></i> Vida</div>
-                    <h5 class="fw-bold @(Model.LifeRemaining < 0 ? "text-danger" : "")">@Model.LifeRemaining.ToString("C", culture)</h5>
-                    <div class="small text-muted mb-2">de @Model.LifeBudget.ToString("C", culture)</div>
+                    <h5 id="lifeRemaining" class="fw-bold @(Model.LifeRemaining < 0 ? "text-danger" : "")">@Model.LifeRemaining.ToString("C", culture)</h5>
+                    <div id="lifeInitial" class="small text-muted mb-2">de @Model.LifeBudget.ToString("C", culture)</div>
                     <div class="progress" style="height: 4px;">
-                        <div class="progress-bar @(Model.LifeRemaining < 0 ? "bg-danger" : "bg-info")" 
+                        <div id="lifeProgress" class="progress-bar @(Model.LifeRemaining < 0 ? "bg-danger" : "bg-info")" 
                              style="width: @GetProgress(Model.LifeSpent, Model.LifeBudget)%"></div>
                     </div>
                 </div>
@@ -102,10 +102,10 @@
             <div class="card dashboard-card shadow-sm border-0 h-100">
                 <div class="card-body p-3">
                     <div class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-controller me-1"></i> Caprichos</div>
-                    <h5 class="fw-bold @(Model.WhimRemaining < 0 ? "text-danger" : "")">@Model.WhimRemaining.ToString("C", culture)</h5>
-                    <div class="small text-muted mb-2">de @Model.WhimBudget.ToString("C", culture)</div>
+                    <h5 id="whimRemaining" class="fw-bold @(Model.WhimRemaining < 0 ? "text-danger" : "")">@Model.WhimRemaining.ToString("C", culture)</h5>
+                    <div id="whimInitial" class="small text-muted mb-2">de @Model.WhimBudget.ToString("C", culture)</div>
                     <div class="progress" style="height: 4px;">
-                        <div class="progress-bar @(Model.WhimRemaining < 0 ? "bg-danger" : "bg-warning")" 
+                        <div id="whimProgress" class="progress-bar @(Model.WhimRemaining < 0 ? "bg-danger" : "bg-warning")" 
                              style="width: @GetProgress(Model.WhimSpent, Model.WhimBudget)%"></div>
                     </div>
                 </div>
@@ -148,3 +148,92 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        function formatCurrency(amount) {
+            // Usa el locale y currency del modelo
+            return new Intl.NumberFormat('@(Model.Currency == "EUR" ? "es-ES" : "en-US")', {
+                style: 'currency',
+                currency: '@Model.Currency'
+            }).format(amount);
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 0: return "status-healthy";
+                case 1: return "status-danger";
+                default: return "status-warning";
+            }
+        }
+
+        function getStatusIcon(status) {
+            switch(status) {
+                case 0: return "bi-check-circle-fill";
+                case 1: return "bi-exclamation-triangle-fill";
+                default: return "bi-exclamation-circle-fill";
+            }
+        }
+
+        function getProgress(spent, initial) {
+            if (initial <= 0) return spent > 0 ? 100 : 0;
+            let p = Math.floor((spent / initial) * 100);
+            return p > 100 ? 100 : p;
+        }
+
+        function updateDashboardUI(summary, warnings) {
+            // Estado
+            document.getElementById('monthlyStatusContainer').className = "mb-4 " + getStatusClass(summary.monthlyStatus);
+            document.getElementById('monthlyStatusIcon').className = "bi " + getStatusIcon(summary.monthlyStatus) + " me-2";
+            document.getElementById('monthlyStatusMessage').textContent = summary.statusMessage;
+
+            // Bolsillo Libre
+            const fpRemaining = document.getElementById('freePocketRemaining');
+            fpRemaining.textContent = formatCurrency(summary.freePocketRemaining);
+            fpRemaining.className = "display-4 fw-bold mb-1 " + (summary.freePocketRemaining < 0 ? "text-danger" : "text-success");
+            
+            document.getElementById('freePocketInitial').textContent = "Inicial: " + formatCurrency(summary.freePocketInitial);
+            document.getElementById('freePocketSpent').textContent = "Gastado: " + formatCurrency(summary.freePocketSpent);
+            
+            const fpProgress = document.getElementById('freePocketProgress');
+            fpProgress.className = "progress-bar " + (summary.freePocketRemaining < 0 ? "bg-danger" : "bg-primary");
+            fpProgress.style.width = getProgress(summary.freePocketSpent, summary.freePocketInitial) + "%";
+
+            // Semanal
+            const wkBadge = document.getElementById('weeklyRemainingBadge');
+            wkBadge.textContent = "Restan " + formatCurrency(summary.weeklyRemaining);
+            wkBadge.className = "badge px-2 py-1 rounded-pill " + (summary.weeklyRemaining < 0 ? "bg-danger" : "bg-primary");
+            
+            document.getElementById('weeklyInitial').textContent = "Inicial: " + formatCurrency(summary.weeklyBudget);
+            document.getElementById('weeklySpent').textContent = "Gastado: " + formatCurrency(summary.weeklySpent);
+            
+            const wkProgress = document.getElementById('weeklyProgress');
+            wkProgress.className = "progress-bar " + (summary.weeklyRemaining < 0 ? "bg-danger" : "bg-primary");
+            wkProgress.style.width = getProgress(summary.weeklySpent, summary.weeklyBudget) + "%";
+
+            // Vida
+            const lfRemaining = document.getElementById('lifeRemaining');
+            lfRemaining.textContent = formatCurrency(summary.lifeRemaining);
+            lfRemaining.className = "fw-bold " + (summary.lifeRemaining < 0 ? "text-danger" : "");
+            
+            document.getElementById('lifeInitial').textContent = "de " + formatCurrency(summary.lifeBudget);
+            
+            const lfProgress = document.getElementById('lifeProgress');
+            lfProgress.className = "progress-bar " + (summary.lifeRemaining < 0 ? "bg-danger" : "bg-info");
+            lfProgress.style.width = getProgress(summary.lifeSpent, summary.lifeBudget) + "%";
+
+            // Caprichos
+            const whRemaining = document.getElementById('whimRemaining');
+            whRemaining.textContent = formatCurrency(summary.whimRemaining);
+            whRemaining.className = "fw-bold " + (summary.whimRemaining < 0 ? "text-danger" : "");
+            
+            document.getElementById('whimInitial').textContent = "de " + formatCurrency(summary.whimBudget);
+            
+            const whProgress = document.getElementById('whimProgress');
+            whProgress.className = "progress-bar " + (summary.whimRemaining < 0 ? "bg-danger" : "bg-warning");
+            whProgress.style.width = getProgress(summary.whimSpent, summary.whimBudget) + "%";
+            
+            // Note: PiggyBanks aren't updated by expenses right now, so we skip them.
+        }
+    </script>
+}

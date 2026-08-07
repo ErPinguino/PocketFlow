@@ -4,6 +4,7 @@ public interface IAppClock
 {
     DateTime UtcNow { get; }
     DateTime LocalNow { get; }
+    TimeZoneInfo LocalTimeZone { get; }
     (DateTime StartUtc, DateTime EndUtc) GetCurrentWeekLimitsUtc();
 }
 
@@ -32,6 +33,7 @@ public class AppClock : IAppClock
 
     public DateTime UtcNow => DateTime.UtcNow;
     public DateTime LocalNow => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _timeZone);
+    public TimeZoneInfo LocalTimeZone => _timeZone;
 
     public (DateTime StartUtc, DateTime EndUtc) GetCurrentWeekLimitsUtc()
     {

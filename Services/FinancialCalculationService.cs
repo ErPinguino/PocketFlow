@@ -15,6 +15,13 @@ public interface IFinancialCalculationService
     MonthlyStatus DetermineMonthlyStatus(decimal freePocketRemaining, decimal whimRemaining, decimal lifeRemaining, decimal weeklyRemaining);
     string GetStatusMessage(MonthlyStatus status);
     int CalculatePiggyBankProgressPercentage(decimal target, decimal current);
+    
+    (decimal FreePocketRemaining, decimal LifeRemaining, decimal WhimRemaining, decimal WeeklyRemaining) CalculatePlanRemainings(
+        MonthlyPlan plan, 
+        decimal totalExpenses, 
+        decimal lifeExpenses, 
+        decimal whimExpenses, 
+        decimal weeklyExpenses);
 }
 
 public class FinancialCalculationService : IFinancialCalculationService
@@ -66,5 +73,20 @@ public class FinancialCalculationService : IFinancialCalculationService
         if (target <= 0) return 0;
         var percentage = (int)((current / target) * 100);
         return percentage > 100 ? 100 : percentage;
+    }
+
+    public (decimal FreePocketRemaining, decimal LifeRemaining, decimal WhimRemaining, decimal WeeklyRemaining) CalculatePlanRemainings(
+        MonthlyPlan plan, 
+        decimal totalExpenses, 
+        decimal lifeExpenses, 
+        decimal whimExpenses, 
+        decimal weeklyExpenses)
+    {
+        return (
+            FreePocketRemaining: plan.FreePocketAmount - totalExpenses,
+            LifeRemaining: plan.LifeBudget - lifeExpenses,
+            WhimRemaining: plan.WhimBudget - whimExpenses,
+            WeeklyRemaining: plan.WeeklyBudget - weeklyExpenses
+        );
     }
 }

@@ -57,19 +57,24 @@ public class DashboardService : IDashboardService
         var piggyBanks = await _piggyBankRepository.GetActiveByAccountIdAsync(account.Id);
 
         var freePocketSpent = expenses.Sum(e => e.Amount);
-        var freePocketRemaining = plan.FreePocketAmount - freePocketSpent;
-
         var lifeSpent = expenses.Where(e => e.Category == ExpenseCategory.Life).Sum(e => e.Amount);
-        var lifeRemaining = plan.LifeBudget - lifeSpent;
-
         var whimSpent = expenses.Where(e => e.Category == ExpenseCategory.Whim).Sum(e => e.Amount);
-        var whimRemaining = plan.WhimBudget - whimSpent;
-
         var weeklySpent = weeklyExpenses.Sum(e => e.Amount);
-        var weeklyRemaining = plan.WeeklyBudget - weeklySpent;
 
-        var status = _calcService.DetermineMonthlyStatus(freePocketRemaining, whimRemaining, lifeRemaining, weeklyRemaining);
-        var statusMessage = _calcService.GetStatusMessage(status);
+        var remainings = _calcService.CalculatePlanRemainings(
+            plan,
+            freePocketSpent,
+            lifeSpent,
+            whimSpent,
+            weeklySpent
+        );
+
+        var status = _calcService.DetermineMonthlyStatus(
+            remainings.FreePocketRemaining,
+            remainings.WhimRemaining,
+            remainings.LifeRemaining,
+            remainings.WeeklyRemaining
+        );
 
         var model = new DashboardViewModel
         {
@@ -82,22 +87,22 @@ public class DashboardService : IDashboardService
             
             FreePocketInitial = plan.FreePocketAmount,
             FreePocketSpent = freePocketSpent,
-            FreePocketRemaining = freePocketRemaining,
+            FreePocketRemaining = remainings.FreePocketRemaining,
 
             WeeklyBudget = plan.WeeklyBudget,
             WeeklySpent = weeklySpent,
-            WeeklyRemaining = weeklyRemaining,
+            WeeklyRemaining = remainings.WeeklyRemaining,
 
             LifeBudget = plan.LifeBudget,
             LifeSpent = lifeSpent,
-            LifeRemaining = lifeRemaining,
+            LifeRemaining = remainings.LifeRemaining,
 
             WhimBudget = plan.WhimBudget,
             WhimSpent = whimSpent,
-            WhimRemaining = whimRemaining,
+            WhimRemaining = remainings.WhimRemaining,
 
             MonthlyStatus = status,
-            StatusMessage = statusMessage,
+            StatusMessage = _calcService.GetStatusMessage(status),
             
             PiggyBanks = piggyBanks.Select(pb => new PiggyBankDashboardItemViewModel
             {
