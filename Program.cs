@@ -3,8 +3,26 @@ using Microsoft.EntityFrameworkCore;
 using PocketFlow.Data;
 using PocketFlow.Repositories;
 using PocketFlow.Services;
+using WebPush;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 1. Configurar Puerto Dinámico para Render (Producción)
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
+// 2. Configurar Forwarded Headers (Proxy Inverso en Render)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Permite que Render reenvíe de forma segura las cabeceras a nuestra aplicación
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -66,6 +84,9 @@ builder.Services.AddScoped<IPiggyBankService, PiggyBankService>();
 builder.Services.AddScoped<IWebPushNotificationService, WebPushNotificationService>();
 
 var app = builder.Build();
+
+// Aplicar Forwarded Headers lo antes posible en el pipeline
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
