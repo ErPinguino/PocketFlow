@@ -19,6 +19,7 @@ public class PocketViewModel
     public bool IsActivePlan { get; set; } = true;
     
     public List<ExpenseListItemViewModel> Expenses { get; set; } = new();
+    public List<PocketFlow.ViewModels.Installments.InstallmentPlanListItemViewModel> Installments { get; set; } = new();
     
     public int CurrentPage { get; set; } = 1;
     public int TotalPages { get; set; } = 1;

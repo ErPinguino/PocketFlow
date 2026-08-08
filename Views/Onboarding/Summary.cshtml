@@ -35,10 +35,17 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
                             @pb.Icon <strong>@pb.Name</strong>
-                            <div class="small text-muted">Aportación: @pb.MonthlyContribution.ToString("C")</div>
+                            <div class="small text-muted">Aportación: @((pb.MonthlyContribution ?? 0).ToString("C"))</div>
                         </div>
                         <div>
-                            <span class="badge bg-light text-dark border">Objetivo: @pb.TargetAmount.ToString("C")</span>
+                            @if (pb.TargetAmount.HasValue)
+                            {
+                                <span class="badge bg-light text-dark border">Objetivo: @pb.TargetAmount.Value.ToString("C")</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark border">Sin límite</span>
+                            }
                         </div>
                     </li>
                 }

@@ -181,49 +181,138 @@
           <div class="modal-body pt-3">
             <div id="expenseModalAlert" class="alert alert-danger d-none" role="alert"></div>
             
-            <form id="expenseForm" asp-controller="Expenses" asp-action="Create" method="post">
-                <input type="hidden" id="expenseId" name="Id" value="" />
+            <ul class="nav nav-pills nav-fill mb-3 bg-light rounded-pill p-1" id="expenseTypeTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill fw-bold" id="single-tab" data-bs-toggle="pill" data-bs-target="#single-expense" type="button" role="tab">Único</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-bold" id="installment-tab" data-bs-toggle="pill" data-bs-target="#installment-expense" type="button" role="tab">A plazos</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="expenseTypeTabContent">
+                <!-- PAGO ÚNICO -->
+                <div class="tab-pane fade show active" id="single-expense" role="tabpanel">
+                    <form id="expenseForm" asp-controller="Expenses" asp-action="Create" method="post">
+                        <input type="hidden" id="expenseId" name="Id" value="" />
+                        
+                        <div class="mb-4 text-center">
+                            <label for="expenseAmount" class="form-label text-muted small fw-bold mb-1">IMPORTE</label>
+                            <div class="input-group input-group-lg justify-content-center border-bottom border-2 border-primary pb-2 w-75 mx-auto">
+                                <input type="number" min="0.01" step="0.01" class="form-control form-control-plaintext text-center fs-1 fw-bold text-dark p-0" id="expenseAmount" name="Amount" placeholder="0.00" autocomplete="off" required>
+                                <span class="input-group-text bg-transparent border-0 fs-3 text-muted p-0 ms-1">€</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold mb-2 d-block">CATEGORÍA</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Category" id="catLife" value="Life" required>
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded-4" for="catLife">
+                                        <i class="bi bi-cart3 fs-4 d-block mb-1"></i>
+                                        <span class="fw-bold">Vida</span>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Category" id="catWhim" value="Whim">
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded-4" for="catWhim">
+                                        <i class="bi bi-controller fs-4 d-block mb-1"></i>
+                                        <span class="fw-bold">Capricho</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="expenseDesc" class="form-label text-muted small fw-bold mb-2">DESCRIPCIÓN <span class="fw-normal text-muted-50">(Opcional)</span></label>
+                            <input type="text" class="form-control form-control-lg bg-light border-0" id="expenseDesc" name="Description" placeholder="Ej. Compra en el súper..." autocomplete="off">
+                        </div>
+
+                        <div class="d-grid mt-2">
+                            <button type="submit" id="btnSaveExpense" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
+                                <span class="btn-text" id="expenseBtnText">Añadir gasto</span>
+                                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
                 
-                <div class="mb-4 text-center">
-                    <label for="expenseAmount" class="form-label text-muted small fw-bold mb-1">IMPORTE</label>
-                    <div class="input-group input-group-lg justify-content-center border-bottom border-2 border-primary pb-2 w-75 mx-auto">
-                        <input type="number" min="0.01" step="0.01" class="form-control form-control-plaintext text-center fs-1 fw-bold text-dark p-0" id="expenseAmount" name="Amount" placeholder="0.00" autocomplete="off" required>
-                        <span class="input-group-text bg-transparent border-0 fs-3 text-muted p-0 ms-1">€</span>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-muted small fw-bold mb-2 d-block">CATEGORÍA</label>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <input type="radio" class="btn-check" name="Category" id="catLife" value="Life" required>
-                            <label class="btn btn-outline-primary w-100 py-3 rounded-4" for="catLife">
-                                <i class="bi bi-cart3 fs-4 d-block mb-1"></i>
-                                <span class="fw-bold">Vida</span>
-                            </label>
+                <!-- A PLAZOS -->
+                <div class="tab-pane fade" id="installment-expense" role="tabpanel">
+                    <form id="installmentForm" asp-controller="Installments" asp-action="Create" method="post">
+                        
+                        <div class="mb-3 text-center">
+                            <label for="instTotalAmount" class="form-label text-muted small fw-bold mb-1">COSTE TOTAL</label>
+                            <div class="input-group input-group-lg justify-content-center border-bottom border-2 border-primary pb-2 w-75 mx-auto">
+                                <input type="number" min="0.01" step="0.01" class="form-control form-control-plaintext text-center fs-2 fw-bold text-dark p-0" id="instTotalAmount" name="TotalAmount" placeholder="0.00" autocomplete="off" required>
+                                <span class="input-group-text bg-transparent border-0 fs-4 text-muted p-0 ms-1">€</span>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <input type="radio" class="btn-check" name="Category" id="catWhim" value="Whim">
-                            <label class="btn btn-outline-primary w-100 py-3 rounded-4" for="catWhim">
-                                <i class="bi bi-controller fs-4 d-block mb-1"></i>
-                                <span class="fw-bold">Capricho</span>
-                            </label>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="instCount" class="form-label text-muted small fw-bold mb-1">Nº CUOTAS</label>
+                                <input type="number" class="form-control bg-light border-0 text-center fw-bold" id="instCount" name="InstallmentCount" min="2" max="120" value="3" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="instBaseAmount" class="form-label text-muted small fw-bold mb-1">CUOTA MENSUAL</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0.01" class="form-control bg-light border-0 fw-bold text-end" id="instBaseAmount" name="BaseInstallmentAmount" required>
+                                    <span class="input-group-text bg-light border-0 text-muted">€</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="mb-4">
-                    <label for="expenseDesc" class="form-label text-muted small fw-bold mb-2">DESCRIPCIÓN <span class="fw-normal text-muted-50">(Opcional)</span></label>
-                    <input type="text" class="form-control form-control-lg bg-light border-0" id="expenseDesc" name="Description" placeholder="Ej. Compra en el súper..." autocomplete="off">
-                </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold mb-2 d-block">CATEGORÍA</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Category" id="instCatLife" value="Life" required>
+                                    <label class="btn btn-outline-primary w-100 py-2 rounded-4" for="instCatLife">
+                                        <i class="bi bi-cart3 fs-5 d-block mb-1"></i>
+                                        <span class="fw-bold small">Vida</span>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Category" id="instCatWhim" value="Whim">
+                                    <label class="btn btn-outline-primary w-100 py-2 rounded-4" for="instCatWhim">
+                                        <i class="bi bi-controller fs-5 d-block mb-1"></i>
+                                        <span class="fw-bold small">Capricho</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="d-grid mt-2">
-                    <button type="submit" id="btnSaveExpense" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
-                        <span class="btn-text" id="expenseBtnText">Añadir gasto</span>
-                        <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
-                    </button>
+                        <div class="mb-3">
+                            <label for="instDesc" class="form-label text-muted small fw-bold mb-1">DESCRIPCIÓN / COMPRA</label>
+                            <input type="text" class="form-control bg-light border-0" id="instDesc" name="Description" placeholder="Ej. iPhone 15..." required autocomplete="off">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="instProvider" class="form-label text-muted small fw-bold mb-1">PROVEEDOR <span class="fw-normal text-muted-50">(Opcional)</span></label>
+                                <input type="text" class="form-control bg-light border-0" id="instProvider" name="Provider" placeholder="Ej. Klarna, PayPal..." autocomplete="off">
+                            </div>
+                            <div class="col-6">
+                                <label for="instBillingDay" class="form-label text-muted small fw-bold mb-1">DÍA DE COBRO</label>
+                                <input type="number" class="form-control bg-light border-0 text-center" id="instBillingDay" name="BillingDay" min="1" max="31" value="1" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="instFirstPaid" name="FirstInstallmentAlreadyPaid" value="true">
+                            <label class="form-check-label small" for="instFirstPaid">La primera cuota se ha cobrado hoy</label>
+                        </div>
+
+                        <div class="d-grid mt-2">
+                            <button type="submit" id="btnSaveInstallment" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                                Crear plan a plazos
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

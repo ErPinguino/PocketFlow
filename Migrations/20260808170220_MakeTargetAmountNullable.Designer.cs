@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PocketFlow.Data;
@@ -11,9 +12,11 @@ using PocketFlow.Data;
 namespace PocketFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808170220_MakeTargetAmountNullable")]
+    partial class MakeTargetAmountNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,104 +124,6 @@ namespace PocketFlow.Migrations
                         {
                             t.HasCheckConstraint("CK_Expense_Amount", "\"Amount\" > 0");
                         });
-                });
-
-            modelBuilder.Entity("PocketFlow.Models.InstallmentPayment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ExpenseId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("InstallmentNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("InstallmentPlanId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PaymentType")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpenseId");
-
-                    b.HasIndex("InstallmentPlanId", "InstallmentNumber")
-                        .IsUnique();
-
-                    b.ToTable("InstallmentPayments");
-                });
-
-            modelBuilder.Entity("PocketFlow.Models.InstallmentPlan", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("BaseInstallmentAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("BillingDay")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("InstallmentCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Provider")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("InstallmentPlans");
                 });
 
             modelBuilder.Entity("PocketFlow.Models.MonthlyPlan", b =>
@@ -503,35 +408,6 @@ namespace PocketFlow.Migrations
                     b.Navigation("MonthlyPlan");
                 });
 
-            modelBuilder.Entity("PocketFlow.Models.InstallmentPayment", b =>
-                {
-                    b.HasOne("PocketFlow.Models.Expense", "Expense")
-                        .WithMany()
-                        .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("PocketFlow.Models.InstallmentPlan", "InstallmentPlan")
-                        .WithMany("Payments")
-                        .HasForeignKey("InstallmentPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Expense");
-
-                    b.Navigation("InstallmentPlan");
-                });
-
-            modelBuilder.Entity("PocketFlow.Models.InstallmentPlan", b =>
-                {
-                    b.HasOne("PocketFlow.Models.Account", "Account")
-                        .WithMany("InstallmentPlans")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("PocketFlow.Models.MonthlyPlan", b =>
                 {
                     b.HasOne("PocketFlow.Models.Account", "Account")
@@ -599,16 +475,9 @@ namespace PocketFlow.Migrations
 
             modelBuilder.Entity("PocketFlow.Models.Account", b =>
                 {
-                    b.Navigation("InstallmentPlans");
-
                     b.Navigation("MonthlyPlans");
 
                     b.Navigation("PiggyBanks");
-                });
-
-            modelBuilder.Entity("PocketFlow.Models.InstallmentPlan", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("PocketFlow.Models.MonthlyPlan", b =>

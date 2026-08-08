@@ -17,8 +17,16 @@ public class DashboardController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        [FromServices] IExpenseService expenseService,
+        [FromServices] IInstallmentMaterializationService installmentMaterializationService)
     {
+        var accountIdClaim = User.FindFirst("AccountId")?.Value;
+        if (accountIdClaim != null && Guid.TryParse(accountIdClaim, out var accountId))
+        {
+            await installmentMaterializationService.MaterializePendingInstallmentsAsync(accountId);
+        }
+
         var model = await _dashboardService.GetDashboardAsync();
 
         if (model == null)

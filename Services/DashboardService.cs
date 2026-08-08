@@ -115,7 +115,7 @@ public class DashboardService : IDashboardService
                 CurrentAmount = pb.CurrentAmount,
                 TargetAmount = pb.TargetAmount,
                 MonthlyContribution = pb.MonthlyContribution,
-                ProgressPercentage = _calcService.CalculatePiggyBankProgressPercentage(pb.TargetAmount, pb.CurrentAmount)
+                ProgressPercentage = pb.TargetAmount.HasValue ? _calcService.CalculatePiggyBankProgressPercentage(pb.TargetAmount.Value, pb.CurrentAmount) : null
             }).ToList(),
             
             ShouldAskPaydayConfirmation = _paydayService.ShouldAskPaydayConfirmation(account)

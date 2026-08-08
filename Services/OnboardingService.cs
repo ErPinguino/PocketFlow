@@ -55,7 +55,7 @@ public class OnboardingService : IOnboardingService
                 return false;
             }
 
-            var totalSavings = _calcService.CalculateTotalMonthlySavings(finalState.PiggyBanks.Select(p => p.MonthlyContribution));
+            var totalSavings = _calcService.CalculateTotalMonthlySavings(finalState.PiggyBanks.Select(p => p.MonthlyContribution ?? 0m));
             var availableFree = _calcService.CalculateAvailableFreePocket(finalState.MonthlyIncome, finalState.FixedExpenses, totalSavings);
             var isPocketValid = _calcService.ValidatePocketBudgets(availableFree, finalState.LifeBudget, finalState.WhimBudget);
 
@@ -104,9 +104,9 @@ public class OnboardingService : IOnboardingService
                 {
                     AccountId = account.Id,
                     Name = pb.Name,
-                    CurrentAmount = pb.CurrentAmount,
+                    CurrentAmount = pb.CurrentAmount ?? 0m,
                     TargetAmount = pb.TargetAmount,
-                    MonthlyContribution = pb.MonthlyContribution,
+                    MonthlyContribution = pb.MonthlyContribution ?? 0m,
                     Icon = pb.Icon
                 });
             }

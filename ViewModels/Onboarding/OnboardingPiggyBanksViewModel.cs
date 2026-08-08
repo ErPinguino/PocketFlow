@@ -10,14 +10,14 @@ public class OnboardingPiggyBankItemViewModel
     public string Name { get; set; } = string.Empty;
 
     [Range(0, double.MaxValue, ErrorMessage = "El importe actual no puede ser negativo.")]
-    public decimal CurrentAmount { get; set; }
+    public decimal? CurrentAmount { get; set; }
 
-    [Required(ErrorMessage = "El objetivo es obligatorio.")]
     [Range(0.01, double.MaxValue, ErrorMessage = "El objetivo debe ser mayor a 0.")]
-    public decimal TargetAmount { get; set; }
+    public decimal? TargetAmount { get; set; }
 
+    [Required(ErrorMessage = "La aportación mensual es obligatoria.")]
     [Range(0, double.MaxValue, ErrorMessage = "La aportación mensual no puede ser negativa.")]
-    public decimal MonthlyContribution { get; set; }
+    public decimal? MonthlyContribution { get; set; }
 
     public string? Icon { get; set; }
 }

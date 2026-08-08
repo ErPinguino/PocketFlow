@@ -22,6 +22,8 @@ public interface IFinancialCalculationService
         decimal lifeExpenses, 
         decimal whimExpenses, 
         decimal weeklyExpenses);
+        
+    List<decimal> BuildInstallmentSchedule(decimal total, int count, decimal baseInstallment);
 }
 
 public class FinancialCalculationService : IFinancialCalculationService
@@ -33,8 +35,7 @@ public class FinancialCalculationService : IFinancialCalculationService
 
     public decimal CalculateAvailableFreePocket(decimal income, decimal fixedExpenses, decimal totalSavings)
     {
-        var free = income - fixedExpenses - totalSavings;
-        return free > 0 ? free : 0;
+        return income - fixedExpenses - totalSavings;
     }
 
     public decimal CalculateWeeklyBudget(decimal freePocket)
@@ -88,5 +89,33 @@ public class FinancialCalculationService : IFinancialCalculationService
             WhimRemaining: plan.WhimBudget - whimExpenses,
             WeeklyRemaining: plan.WeeklyBudget - weeklyExpenses
         );
+    }
+
+    public List<decimal> BuildInstallmentSchedule(decimal total, int count, decimal baseInstallment)
+    {
+        if (total <= 0) throw new ArgumentException("Total must be > 0", nameof(total));
+        if (count < 2) throw new ArgumentException("Count must be >= 2", nameof(count));
+        if (baseInstallment <= 0) throw new ArgumentException("Base installment must be > 0", nameof(baseInstallment));
+
+        var schedule = new List<decimal>();
+        
+        // Sum all normal installments
+        decimal sumRegular = 0;
+        for (int i = 0; i < count - 1; i++)
+        {
+            schedule.Add(baseInstallment);
+            sumRegular += baseInstallment;
+        }
+
+        // Last installment absorbs the rest
+        var lastInstallment = total - sumRegular;
+        if (lastInstallment <= 0)
+        {
+            throw new InvalidOperationException("The base installment is too high to fit the total in the specified count.");
+        }
+
+        schedule.Add(lastInstallment);
+        
+        return schedule;
     }
 }

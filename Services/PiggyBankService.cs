@@ -183,11 +183,11 @@ public class PiggyBankService : IPiggyBankService
 
     private PiggyBankListItemViewModel MapToListItem(PiggyBank pb)
     {
-        decimal remaining = Math.Max(0, pb.TargetAmount - pb.CurrentAmount);
-        int percentage = 0;
-        if (pb.TargetAmount > 0)
+        decimal? remaining = pb.TargetAmount.HasValue ? Math.Max(0, pb.TargetAmount.Value - pb.CurrentAmount) : null;
+        int? percentage = null;
+        if (pb.TargetAmount.HasValue && pb.TargetAmount.Value > 0)
         {
-            percentage = (int)Math.Round((pb.CurrentAmount / pb.TargetAmount) * 100);
+            percentage = (int)Math.Round((pb.CurrentAmount / pb.TargetAmount.Value) * 100);
             if (percentage > 100) percentage = 100;
         }
 
@@ -202,7 +202,7 @@ public class PiggyBankService : IPiggyBankService
             MonthlyContribution = pb.MonthlyContribution,
             ProgressPercentage = percentage,
             IsActive = pb.IsActive,
-            IsCompleted = pb.CurrentAmount >= pb.TargetAmount
+            IsCompleted = pb.TargetAmount.HasValue && pb.CurrentAmount >= pb.TargetAmount.Value
         };
     }
 }

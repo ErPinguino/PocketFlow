@@ -12,6 +12,7 @@ public class Account : BaseEntity
     
     public ICollection<PiggyBank> PiggyBanks { get; set; } = new List<PiggyBank>();
     public ICollection<MonthlyPlan> MonthlyPlans { get; set; } = new List<MonthlyPlan>();
+    public ICollection<InstallmentPlan> InstallmentPlans { get; set; } = new List<InstallmentPlan>();
     
     // Notification Preferences
     public bool NotifyPayday { get; set; } = true;

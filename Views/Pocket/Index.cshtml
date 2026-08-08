@@ -48,6 +48,63 @@
         </div>
     </div>
 
+    <!-- Active Installments -->
+    @if (Model.Installments != null && Model.Installments.Any())
+    {
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-range me-2 text-primary"></i> Pagos a Plazos Activos</h5>
+            <div class="row g-3">
+                @foreach (var inst in Model.Installments)
+                {
+                    <div class="col-12 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">@inst.Description</h6>
+                                        <span class="badge bg-light text-dark border"><i class="bi @(inst.Category == ExpenseCategory.Life ? "bi-cart3" : "bi-controller") me-1"></i> @(inst.Category == ExpenseCategory.Life ? "Vida" : "Capricho")</span>
+                                        @if (!string.IsNullOrEmpty(inst.Provider))
+                                        {
+                                            <span class="badge bg-light text-muted border ms-1">@inst.Provider</span>
+                                        }
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-primary rounded-pill px-2">@inst.PaidInstallmentsCount / @inst.InstallmentCount</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-end mt-3">
+                                    <div>
+                                        <div class="small text-muted mb-1">Cuota mensual</div>
+                                        <div class="fw-bold fs-5">@inst.BaseInstallmentAmount.ToString("C", culture)</div>
+                                    </div>
+                                    <div>
+                                        <div class="small text-muted mb-1 text-end">Pendiente</div>
+                                        <div class="fw-bold text-end">@inst.PendingAmount.ToString("C", culture)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                                    <div class="small text-muted">
+                                        @if (inst.NextDueDate.HasValue)
+                                        {
+                                            <span>Próx. cuota: <strong class="text-dark">@inst.NextDueDate.Value.ToString("dd MMM", culture)</strong></span>
+                                        }
+                                    </div>
+                                    <form asp-controller="Installments" asp-action="Liquidate" asp-route-id="@inst.Id" method="post">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold" onclick="return confirm('¿Seguro que deseas liquidar el importe pendiente de @inst.PendingAmount.ToString("C", culture)?');">
+                                            Liquidar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <!-- Filters, Search & Sort -->
     <div class="row g-3 align-items-center mb-4">
         <div class="col-12 col-md-auto d-flex justify-content-center">

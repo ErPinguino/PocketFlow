@@ -128,4 +128,54 @@ document.addEventListener('DOMContentLoaded', () => {
             spinner.classList.add('d-none');
         }
     });
+
+    // --- LOGICA DE PAGOS A PLAZOS --- //
+    const instForm = document.getElementById('installmentForm');
+    if (instForm) {
+        const instTotalAmount = document.getElementById('instTotalAmount');
+        const instCount = document.getElementById('instCount');
+        const instBaseAmount = document.getElementById('instBaseAmount');
+        let userEditedBase = false;
+
+        const calculateBase = () => {
+            if (userEditedBase) return;
+            const total = parseFloat(instTotalAmount.value) || 0;
+            const count = parseInt(instCount.value) || 0;
+            if (total > 0 && count > 1) {
+                instBaseAmount.value = (total / count).toFixed(2);
+            }
+        };
+
+        instTotalAmount.addEventListener('input', () => {
+            userEditedBase = false;
+            calculateBase();
+        });
+        
+        instCount.addEventListener('input', () => {
+            userEditedBase = false;
+            calculateBase();
+        });
+
+        instBaseAmount.addEventListener('input', () => {
+            userEditedBase = true;
+        });
+
+        const instBtnSave = document.getElementById('btnSaveInstallment');
+
+        instForm.addEventListener('submit', async (e) => {
+            // Note: because the form posts to a different controller which right now does a redirect,
+            // we will let it submit normally for now, OR intercept it just to show spinner.
+            // Since we use RedirectToAction, it's a full page reload if we don't fetch.
+            // Let's do a full page reload for now as PocketController handles it.
+            if (!instForm.checkValidity()) {
+                e.stopPropagation();
+                instForm.classList.add('was-validated');
+                e.preventDefault();
+                return;
+            }
+
+            instBtnSave.disabled = true;
+            instBtnSave.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+        });
+    }
 });

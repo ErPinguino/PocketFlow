@@ -81,6 +81,8 @@ builder.Services.AddScoped<IPaydayService, PaydayService>();
 builder.Services.AddScoped<IMonthlyTransitionService, MonthlyTransitionService>();
 builder.Services.AddScoped<IMonthlyHistoryService, MonthlyHistoryService>();
 builder.Services.AddScoped<IPiggyBankService, PiggyBankService>();
+builder.Services.AddScoped<IInstallmentMaterializationService, InstallmentMaterializationService>();
+builder.Services.AddScoped<IInstallmentService, InstallmentService>();
 builder.Services.AddScoped<IWebPushNotificationService, WebPushNotificationService>();
 
 var app = builder.Build();

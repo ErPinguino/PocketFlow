@@ -179,8 +179,8 @@
         <div class="row g-3 mb-5">
             @foreach (var pb in Model.PiggyBanks)
             {
-                var isCompleted = pb.CurrentAmount >= pb.TargetAmount;
-                var remainingAmount = Math.Max(0, pb.TargetAmount - pb.CurrentAmount);
+                var isCompleted = pb.TargetAmount.HasValue && pb.CurrentAmount >= pb.TargetAmount.Value;
+                var remainingAmount = pb.TargetAmount.HasValue ? Math.Max(0, pb.TargetAmount.Value - pb.CurrentAmount) : (decimal?)null;
                 
                 <div class="col-12 col-md-6 gsap-card">
                     <div class="card dashboard-card shadow-sm border-0 h-100">
@@ -193,21 +193,35 @@
                                     {
                                         <small class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> ¡Objetivo alcanzado!</small>
                                     }
+                                    else if (remainingAmount.HasValue)
+                                    {
+                                        <small class="text-muted">Faltan @remainingAmount.Value.ToString("C", culture)</small>
+                                    }
                                     else
                                     {
-                                        <small class="text-muted">Faltan @remainingAmount.ToString("C", culture)</small>
+                                        <small class="text-muted">Sin objetivo definido</small>
                                     }
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between text-muted small mb-1">
                                 <span class="money-value fw-bold text-dark">@pb.CurrentAmount.ToString("C", culture)</span>
-                                <span>de @pb.TargetAmount.ToString("C", culture)</span>
+                                @if (pb.TargetAmount.HasValue)
+                                {
+                                    <span>de @pb.TargetAmount.Value.ToString("C", culture)</span>
+                                }
+                                else
+                                {
+                                    <span>Sin límite</span>
+                                }
                             </div>
-                            <div class="progress progress-slim">
-                                <div class="progress-bar @(isCompleted ? "bg-success" : "bg-primary")" 
-                                     role="progressbar" 
-                                     style="width: @pb.ProgressPercentage%"></div>
-                            </div>
+                            @if (pb.TargetAmount.HasValue)
+                            {
+                                <div class="progress progress-slim">
+                                    <div class="progress-bar @(isCompleted ? "bg-success" : "bg-primary")" 
+                                         role="progressbar" 
+                                         style="width: @(pb.ProgressPercentage)%"></div>
+                                </div>
+                            }
                             <div class="text-end mt-2">
                                 <small class="text-muted">+@pb.MonthlyContribution.ToString("C", culture)/mes</small>
                             </div>

@@ -57,7 +57,7 @@ public class OnboardingController : Controller
         {
             AccountName = state.AccountName == string.Empty ? "Principal" : state.AccountName,
             Currency = string.IsNullOrEmpty(state.Currency) ? "EUR" : state.Currency,
-            MonthlyIncome = state.MonthlyIncome,
+            MonthlyIncome = state.MonthlyIncome == 0 ? null : state.MonthlyIncome,
             Payday = state.Payday == 0 ? 1 : state.Payday
         };
         return View(model);
@@ -74,7 +74,7 @@ public class OnboardingController : Controller
         var state = _stateService.GetState();
         state.AccountName = model.AccountName;
         state.Currency = model.Currency;
-        state.MonthlyIncome = model.MonthlyIncome;
+        state.MonthlyIncome = model.MonthlyIncome ?? 0m;
         state.Payday = model.Payday;
         _stateService.SaveState(state);
 
@@ -91,7 +91,7 @@ public class OnboardingController : Controller
 
         var model = new OnboardingFixedExpensesViewModel
         {
-            FixedExpenses = state.FixedExpenses
+            FixedExpenses = state.FixedExpenses == 0 && state.MonthlyIncome > 0 ? null : state.FixedExpenses
         };
         return View(model);
     }
@@ -105,7 +105,7 @@ public class OnboardingController : Controller
         if (!ModelState.IsValid) return View(model);
 
         var state = _stateService.GetState();
-        state.FixedExpenses = model.FixedExpenses;
+        state.FixedExpenses = model.FixedExpenses ?? 0m;
         _stateService.SaveState(state);
 
         return RedirectToAction("PiggyBanks");
@@ -150,7 +150,7 @@ public class OnboardingController : Controller
         var state = _stateService.GetState();
         if (string.IsNullOrEmpty(state.AccountName)) return RedirectToAction("Account");
         
-        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution));
+        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution ?? 0m));
         var availableFree = calcService.CalculateAvailableFreePocket(state.MonthlyIncome, state.FixedExpenses, totalSavings);
 
         var model = new OnboardingPocketViewModel
@@ -159,8 +159,8 @@ public class OnboardingController : Controller
             FixedExpenses = state.FixedExpenses,
             TotalMonthlySavings = totalSavings,
             AvailableFreePocket = availableFree,
-            LifeBudget = state.LifeBudget == 0 && state.WhimBudget == 0 ? availableFree : state.LifeBudget,
-            WhimBudget = state.WhimBudget
+            LifeBudget = state.LifeBudget == 0 && state.WhimBudget == 0 ? null : state.LifeBudget,
+            WhimBudget = state.WhimBudget == 0 && state.LifeBudget == 0 ? null : state.WhimBudget
         };
 
         return View(model);
@@ -173,10 +173,14 @@ public class OnboardingController : Controller
         if (IsOnboardingCompleted()) return RedirectToAction("Index", "Dashboard");
         
         var state = _stateService.GetState();
-        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution));
+        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution ?? 0m));
         var availableFree = calcService.CalculateAvailableFreePocket(state.MonthlyIncome, state.FixedExpenses, totalSavings);
 
-        if (!calcService.ValidatePocketBudgets(availableFree, model.LifeBudget, model.WhimBudget))
+        if (availableFree < 0)
+        {
+            ModelState.AddModelError(string.Empty, "Tu planificación supera tus ingresos. Reduce tus gastos fijos o tus aportaciones a huchas antes de continuar.");
+        }
+        else if (!calcService.ValidatePocketBudgets(availableFree, model.LifeBudget ?? 0m, model.WhimBudget ?? 0m))
         {
             ModelState.AddModelError(string.Empty, "La suma de Vida y Caprichos debe coincidir exactamente con el Bolsillo Libre.");
         }
@@ -190,8 +194,8 @@ public class OnboardingController : Controller
             return View(model);
         }
 
-        state.LifeBudget = model.LifeBudget;
-        state.WhimBudget = model.WhimBudget;
+        state.LifeBudget = model.LifeBudget ?? 0m;
+        state.WhimBudget = model.WhimBudget ?? 0m;
         _stateService.SaveState(state);
 
         return RedirectToAction("Summary");
@@ -205,7 +209,7 @@ public class OnboardingController : Controller
         var state = _stateService.GetState();
         if (string.IsNullOrEmpty(state.AccountName)) return RedirectToAction("Account");
         
-        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution));
+        var totalSavings = calcService.CalculateTotalMonthlySavings(state.PiggyBanks.Select(p => p.MonthlyContribution ?? 0m));
         var availableFree = calcService.CalculateAvailableFreePocket(state.MonthlyIncome, state.FixedExpenses, totalSavings);
         var weekly = calcService.CalculateWeeklyBudget(availableFree);
 

@@ -12,20 +12,20 @@
     <div class="card-body">
         <div class="d-flex justify-content-between mb-2">
             <span>Ingresos:</span>
-            <span class="fw-bold">@Model.MonthlyIncome.ToString("C")</span>
+            <span class="fw-bold">@((Model.MonthlyIncome ?? 0).ToString("C"))</span>
         </div>
         <div class="d-flex justify-content-between mb-2">
             <span>Gastos fijos:</span>
-            <span class="text-danger fw-bold">- @Model.FixedExpenses.ToString("C")</span>
+            <span class="text-danger fw-bold">- @((Model.FixedExpenses ?? 0).ToString("C"))</span>
         </div>
         <div class="d-flex justify-content-between mb-2">
             <span>Ahorro (Huchas):</span>
-            <span class="text-primary fw-bold">- @Model.TotalMonthlySavings.ToString("C")</span>
+            <span class="text-primary fw-bold">- @((Model.TotalMonthlySavings ?? 0).ToString("C"))</span>
         </div>
         <hr />
         <div class="d-flex justify-content-between">
             <span class="fw-bold">Bolsillo Libre Disponible:</span>
-            <span class="fw-bold fs-5 text-success">@Model.AvailableFreePocket.ToString("C")</span>
+            <span class="fw-bold fs-5 text-success">@((Model.AvailableFreePocket ?? 0).ToString("C"))</span>
         </div>
     </div>
 </div>
@@ -35,7 +35,12 @@
 
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label asp-for="LifeBudget" class="form-label">Vida (comida, transporte...)</label>
+            <div class="d-flex justify-content-between align-items-end">
+                <label asp-for="LifeBudget" class="form-label mb-1">Vida (comida, transporte...)</label>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 mb-1" id="btnSplit5050">
+                    <i class="bi bi-magic"></i> 50/50
+                </button>
+            </div>
             <div class="input-group">
                 <input asp-for="LifeBudget" class="form-control" type="number" step="0.01" />
                 <span class="input-group-text">€</span>
@@ -58,3 +63,49 @@
         <button type="submit" class="btn btn-primary px-4">Continuar</button>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const lifeInput = document.getElementById('LifeBudget');
+            const whimInput = document.getElementById('WhimBudget');
+            const btnSplit5050 = document.getElementById('btnSplit5050');
+            const availableFreePocket = @((Model.AvailableFreePocket ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            function validateSum() {
+                const life = parseFloat(lifeInput.value) || 0;
+                const whim = parseFloat(whimInput.value) || 0;
+                const total = life + whim;
+
+                if (Math.abs(total - availableFreePocket) > 0.01) {
+                    lifeInput.classList.add('is-invalid');
+                    whimInput.classList.add('is-invalid');
+                } else {
+                    lifeInput.classList.remove('is-invalid');
+                    lifeInput.classList.add('is-valid');
+                    whimInput.classList.remove('is-invalid');
+                    whimInput.classList.add('is-valid');
+                }
+            }
+
+            if (btnSplit5050) {
+                btnSplit5050.addEventListener('click', function () {
+                    const totalCents = Math.round(availableFreePocket * 100);
+                    const halfCents = Math.floor(totalCents / 2);
+                    const remainderCents = totalCents - halfCents;
+                    lifeInput.value = (remainderCents / 100).toFixed(2);
+                    whimInput.value = (halfCents / 100).toFixed(2);
+                    validateSum();
+                });
+            }
+
+            lifeInput.addEventListener('input', validateSum);
+            whimInput.addEventListener('input', validateSum);
+
+            // Trigger validation on load if values exist
+            if (lifeInput.value || whimInput.value) {
+                validateSum();
+            }
+        });
+    </script>
+}

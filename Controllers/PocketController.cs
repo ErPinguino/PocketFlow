@@ -34,12 +34,16 @@ public class PocketController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(ExpenseCategory? category = null, int page = 1, string? search = null, string? sort = null)
+    public async Task<IActionResult> Index(
+        [FromServices] IInstallmentMaterializationService installmentMaterializationService,
+        ExpenseCategory? category = null, int page = 1, string? search = null, string? sort = null)
     {
         const int pageSize = 20;
 
         var account = await _accountContext.GetCurrentAccountAsync();
         if (account == null) return RedirectToAction("Login", "Account");
+        
+        await installmentMaterializationService.MaterializePendingInstallmentsAsync(account.Id);
 
         var localNow = _clock.LocalNow;
         var plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
@@ -112,6 +116,9 @@ public class PocketController : Controller
         };
 
         if (vm.TotalPages == 0) vm.TotalPages = 1;
+
+        var installmentService = HttpContext.RequestServices.GetRequiredService<IInstallmentService>();
+        vm.Installments = await installmentService.GetActivePlansAsync(account.Id);
 
         return View(vm);
     }
