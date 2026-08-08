@@ -230,6 +230,6 @@ public class InstallmentService : IInstallmentService
         var targetMonthDate = startDate.AddMonths(installmentNumber - 1);
         int maxDays = DateTime.DaysInMonth(targetMonthDate.Year, targetMonthDate.Month);
         int actualDay = Math.Min(billingDay, maxDays);
-        return new DateTime(targetMonthDate.Year, targetMonthDate.Month, actualDay, 0, 0, 0, DateTimeKind.Local);
+        return new DateTime(targetMonthDate.Year, targetMonthDate.Month, actualDay, 0, 0, 0, DateTimeKind.Utc);
     }
 }

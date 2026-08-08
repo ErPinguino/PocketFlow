@@ -163,19 +163,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const instBtnSave = document.getElementById('btnSaveInstallment');
 
         instForm.addEventListener('submit', async (e) => {
-            // Note: because the form posts to a different controller which right now does a redirect,
-            // we will let it submit normally for now, OR intercept it just to show spinner.
-            // Since we use RedirectToAction, it's a full page reload if we don't fetch.
-            // Let's do a full page reload for now as PocketController handles it.
+            e.preventDefault();
+            
             if (!instForm.checkValidity()) {
                 e.stopPropagation();
                 instForm.classList.add('was-validated');
-                e.preventDefault();
                 return;
             }
 
             instBtnSave.disabled = true;
             instBtnSave.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+            alertBox.classList.add('d-none');
+
+            try {
+                const formData = new FormData(instForm);
+                const response = await fetch(instForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.succeeded) {
+                    throw new Error(result.errorMessage || 'Error al guardar el pago a plazos.');
+                }
+
+                // Cierra el modal solo en caso de éxito
+                modal.hide();
+                sessionStorage.setItem('pf-toast-success', 'Pago a plazos creado correctamente.');
+                window.location.reload();
+
+            } catch (error) {
+                alertBox.textContent = error.message;
+                alertBox.classList.remove('d-none');
+            } finally {
+                instBtnSave.disabled = false;
+                instBtnSave.innerHTML = '<span class="btn-text">Añadir pago a plazos</span>';
+            }
         });
     }
 });
