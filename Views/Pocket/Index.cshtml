@@ -48,65 +48,40 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="d-flex justify-content-center mb-4">
-        <div class="btn-group shadow-sm" role="group">
-            <a asp-action="Index" asp-route-category="" class="btn @(Model.ActiveFilter == null ? "btn-primary" : "btn-outline-primary")">Todos</a>
-            <a asp-action="Index" asp-route-category="@ExpenseCategory.Life" class="btn @(Model.ActiveFilter == ExpenseCategory.Life ? "btn-primary" : "btn-outline-primary")">Vida</a>
-            <a asp-action="Index" asp-route-category="@ExpenseCategory.Whim" class="btn @(Model.ActiveFilter == ExpenseCategory.Whim ? "btn-primary" : "btn-outline-primary")">Caprichos</a>
+    <!-- Filters, Search & Sort -->
+    <div class="row g-3 align-items-center mb-4">
+        <div class="col-12 col-md-auto d-flex justify-content-center">
+            <div class="btn-group shadow-sm" role="group">
+                <button type="button" class="btn btn-filter @(Model.ActiveFilter == null ? "btn-primary" : "btn-outline-primary")" data-category="">Todos</button>
+                <button type="button" class="btn btn-filter @(Model.ActiveFilter == ExpenseCategory.Life ? "btn-primary" : "btn-outline-primary")" data-category="@ExpenseCategory.Life">Vida</button>
+                <button type="button" class="btn btn-filter @(Model.ActiveFilter == ExpenseCategory.Whim ? "btn-primary" : "btn-outline-primary")" data-category="@ExpenseCategory.Whim">Caprichos</button>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="expenseSearch" class="form-control form-control-lg ps-5 bg-white border-0 shadow-sm" placeholder="Buscar gastos..." value="@ViewData["Search"]">
+        </div>
+        
+        <div class="col-12 col-md-auto">
+            <select id="expenseSort" class="form-select form-select-lg border-0 shadow-sm bg-white" style="min-width: 180px;">
+                <option value="newest" selected="@(ViewData["Sort"]?.ToString() == "newest" || ViewData["Sort"] == null)">Más recientes</option>
+                <option value="oldest" selected="@(ViewData["Sort"]?.ToString() == "oldest")">Más antiguos</option>
+                <option value="highest" selected="@(ViewData["Sort"]?.ToString() == "highest")">Mayor importe</option>
+                <option value="lowest" selected="@(ViewData["Sort"]?.ToString() == "lowest")">Menor importe</option>
+            </select>
         </div>
     </div>
 
     <!-- Expense List -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            @if (!Model.Expenses.Any())
-            {
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-receipt display-4 d-block mb-3"></i>
-                    <p>No hay gastos registrados todavía.</p>
-                </div>
-            }
-            else
-            {
-                <ul class="list-group list-group-flush">
-                    @foreach(var item in Model.Expenses)
-                    {
-                        <li class="list-group-item p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle p-2 me-3 text-center" style="width: 48px; height: 48px; line-height: 32px;">
-                                    <i class="bi @item.IconClass fs-5"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@(string.IsNullOrWhiteSpace(item.Description) ? item.CategoryDisplayName : item.Description)</h6>
-                                    <small class="text-muted">@item.DateDisplay &bull; @item.CategoryDisplayName</small>
-                                </div>
-                            </div>
-                            <div class="fw-bold fs-5">
-                                -@item.Amount.ToString("C", culture)
-                            </div>
-                        </li>
-                    }
-                </ul>
-            }
+    <div class="pocket-list-card mb-4">
+        <div class="card-body p-0" id="expenseListContainer">
+            <partial name="_ExpenseList" model="Model" />
         </div>
     </div>
-
-    <!-- Pagination -->
-    @if (Model.TotalPages > 1)
-    {
-        <div class="d-flex justify-content-center mt-4">
-            <nav aria-label="Navegación de gastos">
-              <ul class="pagination">
-                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                  <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" asp-route-category="@Model.ActiveFilter">Anterior</a>
-                </li>
-                <li class="page-item disabled"><span class="page-link">@Model.CurrentPage de @Model.TotalPages</span></li>
-                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                  <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" asp-route-category="@Model.ActiveFilter">Siguiente</a>
-                </li>
-              </ul>
-            </nav>
-        </div>
-    }
 </div>
+
+@section Scripts {
+    <script src="~/js/pocket.js" asp-append-version="true"></script>
+}
+

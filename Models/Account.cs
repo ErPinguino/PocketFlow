@@ -12,4 +12,12 @@ public class Account : BaseEntity
     
     public ICollection<PiggyBank> PiggyBanks { get; set; } = new List<PiggyBank>();
     public ICollection<MonthlyPlan> MonthlyPlans { get; set; } = new List<MonthlyPlan>();
+    
+    // Notification Preferences
+    public bool NotifyPayday { get; set; } = true;
+    public bool NotifyWeeklyBudget { get; set; } = true;
+    public bool NotifyPiggyBanks { get; set; } = true;
+    public bool NotifyExpenseReminders { get; set; } = false;
+    
+    public DateTime? LastPaycheckConfirmedAt { get; set; }
 }

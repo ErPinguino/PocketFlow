@@ -34,7 +34,7 @@ public class PocketController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(ExpenseCategory? category = null, int page = 1)
+    public async Task<IActionResult> Index(ExpenseCategory? category = null, int page = 1, string? search = null, string? sort = null)
     {
         const int pageSize = 20;
 
@@ -42,14 +42,22 @@ public class PocketController : Controller
         if (account == null) return RedirectToAction("Login", "Account");
 
         var localNow = _clock.LocalNow;
-        var plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id, localNow.Month, localNow.Year);
+        var plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
 
         if (plan == null)
         {
             return View("NoData");
         }
 
-        var (items, totalCount) = await _expenseRepository.GetPagedByMonthlyPlanIdAsync(plan.Id, page, pageSize, category);
+        var (items, totalCount) = await _expenseRepository.GetPagedByMonthlyPlanIdAsync(plan.Id, page, pageSize, category, search, sort);
+
+        var totalPages = totalCount == 0 ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize);
+        if (page > totalPages && totalPages > 0)
+        {
+            page = totalPages;
+            var newPagedResult = await _expenseRepository.GetPagedByMonthlyPlanIdAsync(plan.Id, page, pageSize, category, search, sort);
+            items = newPagedResult.Items;
+        }
 
         var allExpenses = await _expenseRepository.GetByMonthlyPlanIdAsync(plan.Id);
         var weekLimits = _clock.GetCurrentWeekLimitsUtc();
@@ -71,6 +79,9 @@ public class PocketController : Controller
 
         var localZone = _clock.LocalTimeZone;
 
+        ViewData["Search"] = search;
+        ViewData["Sort"] = sort;
+
         var vm = new PocketViewModel
         {
             AccountId = account.Id,
@@ -83,8 +94,9 @@ public class PocketController : Controller
             WeeklyRemaining = remainings.WeeklyRemaining,
             
             ActiveFilter = category,
+            IsActivePlan = plan.Status == PlanStatus.Active,
             CurrentPage = page,
-            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+            TotalPages = totalPages,
             
             Expenses = items.Select(e => new ExpenseListItemViewModel
             {
@@ -102,5 +114,64 @@ public class PocketController : Controller
         if (vm.TotalPages == 0) vm.TotalPages = 1;
 
         return View(vm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExpenseListPartial(Guid? planId = null, ExpenseCategory? category = null, int page = 1, string? search = null, string? sort = null)
+    {
+        const int pageSize = 20;
+
+        var account = await _accountContext.GetCurrentAccountAsync();
+        if (account == null) return Unauthorized();
+
+        MonthlyPlan? plan;
+        if (planId.HasValue)
+        {
+            plan = await _monthlyPlanRepository.GetByIdAndAccountIdAsync(planId.Value, account.Id);
+        }
+        else
+        {
+            plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
+        }
+
+        if (plan == null) return NoContent();
+
+        var (items, totalCount) = await _expenseRepository.GetPagedByMonthlyPlanIdAsync(plan.Id, page, pageSize, category, search, sort);
+
+        var totalPages = totalCount == 0 ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize);
+        if (page > totalPages && totalPages > 0)
+        {
+            page = totalPages;
+            var newPagedResult = await _expenseRepository.GetPagedByMonthlyPlanIdAsync(plan.Id, page, pageSize, category, search, sort);
+            items = newPagedResult.Items;
+        }
+
+        var localZone = _clock.LocalTimeZone;
+
+        var vm = new PocketViewModel
+        {
+            ActiveFilter = category,
+            IsActivePlan = plan.Status == PlanStatus.Active,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            
+            Expenses = items.Select(e => new ExpenseListItemViewModel
+            {
+                Id = e.Id,
+                Amount = e.Amount,
+                Category = e.Category,
+                CategoryDisplayName = e.Category == ExpenseCategory.Life ? "Vida" : "Capricho",
+                Description = e.Description,
+                CreatedAtLocal = TimeZoneInfo.ConvertTimeFromUtc(e.CreatedAt, localZone),
+                DateDisplay = e.CreatedAt.ToRelativeLocalString(localZone),
+                IconClass = e.Category == ExpenseCategory.Life ? "bi-cart3 text-primary" : "bi-controller text-warning"
+            }).ToList()
+        };
+
+        if (vm.TotalPages == 0) vm.TotalPages = 1;
+        ViewData["Search"] = search;
+        ViewData["Sort"] = sort;
+
+        return PartialView("_ExpenseList", vm);
     }
 }

@@ -1,0 +1,112 @@
+/* wwwroot/css/monthly-transition.css */
+
+.transition-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .transition-container {
+        padding: 1.5rem 1rem;
+    }
+}
+
+.transition-card-container {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
+    padding: 3rem;
+}
+
+@media (max-width: 768px) {
+    .transition-card-container {
+        padding: 1.5rem;
+        border-radius: 1rem;
+    }
+}
+
+/* Progress bar styles */
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+}
+
+.step-dot.active {
+    background-color: var(--bs-primary);
+}
+
+.step-line {
+    width: 40px;
+    height: 2px;
+    background-color: #e9ecef;
+}
+
+/* Wizard card options (interactive) */
+.wizard-option-card {
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: white;
+    display: block;
+    width: 100%;
+}
+
+.wizard-option-card:hover {
+    border-color: #c9ccd0;
+    background-color: #f8f9fa;
+}
+
+.wizard-option-card.selected {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    box-shadow: 0 0.25rem 0.75rem rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.wizard-option-card .form-check-input {
+    width: 1.5em;
+    height: 1.5em;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+/* Forms */
+.wizard-form-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+/* Summary cards */
+.summary-stat-card {
+    background-color: #f8f9fa;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    height: 100%;
+}
+
+.summary-stat-card.highlight {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-success-rgb), 0.2);
+}
+
+.summary-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}

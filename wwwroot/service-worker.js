@@ -1,0 +1,130 @@
+const CACHE_NAME = 'pocketflow-static-v2';
+const OFFLINE_URL = '/offline.html';
+
+const ASSETS_TO_CACHE = [
+    OFFLINE_URL,
+    '/css/app.css',
+    '/css/tokens.css',
+    '/css/site.css',
+    '/js/theme.js',
+    '/js/pwa.js',
+    '/manifest.webmanifest',
+    '/icons/icon-192.png',
+    '/icons/icon-512.png',
+    '/icons/icon-maskable-192.png',
+    '/icons/icon-maskable-512.png',
+    '/icons/apple-touch-icon.png',
+    '/lib/jquery/dist/jquery.min.js',
+    '/lib/jquery-validation/dist/jquery.validate.min.js',
+    '/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js',
+    '/lib/gsap/gsap.min.js',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'
+];
+
+self.addEventListener('install', event => {
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(async cache => {
+            for (const asset of ASSETS_TO_CACHE) {
+                try {
+                    await cache.add(new Request(asset, { cache: 'reload' }));
+                } catch (err) {
+                    console.error("Failed to cache asset:", asset, err);
+                }
+            }
+        })
+    );
+});
+
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', event => {
+    // Exclude OAuth routes
+    const url = new URL(event.request.url);
+    if (url.pathname.startsWith('/Account/Google') || url.pathname.startsWith('/auth/v1')) {
+        return; // Fallback to default browser fetch (NETWORK ONLY)
+    }
+
+    // Only intercept navigation requests (HTML pages) and some static assets.
+    // Do not cache API responses (JSON) or POST requests.
+    if (event.request.method !== 'GET') return;
+
+    event.respondWith(
+        caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+
+            return fetch(event.request).catch(() => {
+                if (event.request.mode === 'navigate' || 
+                    (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+                    return caches.match(OFFLINE_URL);
+                }
+                return Response.error();
+            });
+        })
+    );
+});
+
+// WEB PUSH EVENTS
+self.addEventListener('push', event => {
+    if (!event.data) return;
+
+    try {
+        const payload = event.data.json();
+        
+        const options = {
+            body: payload.body || 'Tienes una nueva notificación.',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            tag: payload.tag || 'default',
+            data: {
+                url: payload.url || '/'
+            },
+            vibrate: [200, 100, 200]
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(payload.title || 'PocketFlow', options)
+        );
+    } catch (e) {
+        console.error("Error parsing push payload", e);
+    }
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    
+    const targetUrl = event.notification.data.url;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            // Check if there is already a window/tab open with the target URL
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                // If so, just focus it.
+                if (client.url.includes(targetUrl) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // If not, then open the target URL in a new window/tab.
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});

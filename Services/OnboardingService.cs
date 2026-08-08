@@ -65,13 +65,34 @@ public class OnboardingService : IOnboardingService
                 return false;
             }
 
+            var localNow = _clock.LocalNow;
+            
+            // Set to the most recent payday before localNow so it doesn't trigger immediately
+            int maxDaysInMonth = DateTime.DaysInMonth(localNow.Year, localNow.Month);
+            int actualPaydayDay = finalState.Payday > maxDaysInMonth ? maxDaysInMonth : finalState.Payday;
+            var paydayThisMonth = new DateTime(localNow.Year, localNow.Month, actualPaydayDay);
+            
+            DateTime lastPayday;
+            if (localNow.Date >= paydayThisMonth)
+            {
+                lastPayday = paydayThisMonth;
+            }
+            else
+            {
+                var prevMonthDate = localNow.AddMonths(-1);
+                int maxDaysPrevMonth = DateTime.DaysInMonth(prevMonthDate.Year, prevMonthDate.Month);
+                int prevActualPayday = finalState.Payday > maxDaysPrevMonth ? maxDaysPrevMonth : finalState.Payday;
+                lastPayday = new DateTime(prevMonthDate.Year, prevMonthDate.Month, prevActualPayday);
+            }
+
             var account = new Account
             {
                 UserId = userId,
                 Name = finalState.AccountName,
                 Currency = finalState.Currency,
                 MonthlyIncome = finalState.MonthlyIncome,
-                Payday = finalState.Payday
+                Payday = finalState.Payday,
+                LastPaycheckConfirmedAt = lastPayday.ToUniversalTime()
             };
             await _accountRepository.AddAsync(account);
             await _context.SaveChangesAsync();
@@ -94,7 +115,6 @@ public class OnboardingService : IOnboardingService
                 await _piggyBankRepository.AddRangeAsync(piggyBanks);
             }
 
-            var localNow = _clock.LocalNow;
             var weeklyBudget = _calcService.CalculateWeeklyBudget(availableFree);
 
             var monthlyPlan = new MonthlyPlan

@@ -12,6 +12,7 @@ public class DashboardService : IDashboardService
     private readonly IExpenseRepository _expenseRepository;
     private readonly IFinancialCalculationService _calcService;
     private readonly IAppClock _clock;
+    private readonly IPaydayService _paydayService;
     private readonly ILogger<DashboardService> _logger;
 
     public DashboardService(
@@ -21,6 +22,7 @@ public class DashboardService : IDashboardService
         IExpenseRepository expenseRepository,
         IFinancialCalculationService calcService,
         IAppClock clock,
+        IPaydayService paydayService,
         ILogger<DashboardService> logger)
     {
         _accountContext = accountContext;
@@ -29,6 +31,7 @@ public class DashboardService : IDashboardService
         _expenseRepository = expenseRepository;
         _calcService = calcService;
         _clock = clock;
+        _paydayService = paydayService;
         _logger = logger;
     }
 
@@ -42,7 +45,7 @@ public class DashboardService : IDashboardService
         }
 
         var localNow = _clock.LocalNow;
-        var plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id, localNow.Month, localNow.Year);
+        var plan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
         if (plan == null)
         {
             _logger.LogWarning("GetDashboardAsync: No active plan found for account {AccountId}.", account.Id);
@@ -82,8 +85,8 @@ public class DashboardService : IDashboardService
             AccountId = account.Id,
             AccountName = account.Name,
             Currency = account.Currency,
-            Month = GetMonthNameInSpanish(localNow.Month),
-            Year = localNow.Year,
+            Month = GetMonthNameInSpanish(plan.Month),
+            Year = plan.Year,
             
             FreePocketInitial = plan.FreePocketAmount,
             FreePocketSpent = freePocketSpent,
@@ -113,7 +116,9 @@ public class DashboardService : IDashboardService
                 TargetAmount = pb.TargetAmount,
                 MonthlyContribution = pb.MonthlyContribution,
                 ProgressPercentage = _calcService.CalculatePiggyBankProgressPercentage(pb.TargetAmount, pb.CurrentAmount)
-            }).ToList()
+            }).ToList(),
+            
+            ShouldAskPaydayConfirmation = _paydayService.ShouldAskPaydayConfirmation(account)
         };
 
         return model;

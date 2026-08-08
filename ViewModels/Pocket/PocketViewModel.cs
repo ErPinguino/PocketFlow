@@ -15,6 +15,9 @@ public class PocketViewModel
     
     public ExpenseCategory? ActiveFilter { get; set; }
     
+    // Future-proofing para planes históricos
+    public bool IsActivePlan { get; set; } = true;
+    
     public List<ExpenseListItemViewModel> Expenses { get; set; } = new();
     
     public int CurrentPage { get; set; } = 1;

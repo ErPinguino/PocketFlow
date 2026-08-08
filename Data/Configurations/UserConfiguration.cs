@@ -22,7 +22,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnique();
             
         builder.Property(x => x.PasswordHash)
-            .IsRequired();
+            .IsRequired(false);
+
+        builder.Property(x => x.SupabaseUserId)
+            .IsRequired(false)
+            .HasMaxLength(255);
+
+        builder.HasIndex(x => x.SupabaseUserId)
+            .IsUnique();
             
         builder.HasOne(x => x.Account)
             .WithOne(a => a.User)

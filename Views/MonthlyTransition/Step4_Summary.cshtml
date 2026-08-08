@@ -1,0 +1,132 @@
+@model PocketFlow.ViewModels.MonthlyTransition.MonthlyTransitionSummaryViewModel
+@{
+    ViewData["Title"] = "Resumen del plan";
+    Layout = "_MonthlyTransitionLayout";
+    ViewData["Step"] = 3;
+}
+
+<div class="text-center mb-5">
+    <h2 class="fw-bold mb-2">Todo listo para <span class="text-primary">@Model.NewMonthName</span></h2>
+    <p class="fs-5 text-muted">Así quedará tu nuevo plan financiero.</p>
+</div>
+
+<!-- Resumen Principal -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="summary-stat-card highlight text-center">
+            <span class="wizard-form-label text-success d-block">Bolsillo Libre</span>
+            <div class="summary-stat-value text-success">@Model.NewFreePocket.ToString("C")</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="summary-stat-card text-center">
+            <span class="wizard-form-label d-block">Vida</span>
+            <div class="summary-stat-value">@Model.NewLifeBudget.ToString("C")</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="summary-stat-card text-center">
+            <span class="wizard-form-label d-block">Caprichos</span>
+            <div class="summary-stat-value">@Model.NewWhimBudget.ToString("C")</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="summary-stat-card text-center">
+            <span class="wizard-form-label d-block">Ahorro Mensual</span>
+            <div class="summary-stat-value">@Model.NewTotalSavings.ToString("C")</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    
+    <!-- Sobrante del mes anterior -->
+    @if (Model.LeftoverAmount > 0)
+    {
+        <div class="col-12 col-md-6">
+            <div class="wizard-option-card h-100">
+                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-clock-history me-2"></i> Sobrante del mes anterior</h5>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Cantidad sobrante</span>
+                    <strong class="fs-5">@Model.LeftoverAmount.ToString("C")</strong>
+                </div>
+                <div class="bg-light p-3 rounded mt-3">
+                    <span class="wizard-form-label d-block mb-1">Destino elegido</span>
+                    <span class="fw-bold">
+                        @if (Model.DestinationType == PocketFlow.Models.RolloverDestinationType.PiggyBank)
+                        {
+                            <text>Añadido a la hucha "@Model.DestinationPiggyBankName"</text>
+                        }
+                        else if (Model.DestinationType == PocketFlow.Models.RolloverDestinationType.NextMonthPocket)
+                        {
+                            <text>Añadido al bolsillo de @Model.NewMonthName</text>
+                        }
+                        else
+                        {
+                            <text>Dejado sin asignar</text>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Huchas -->
+    <div class="col-12 @(Model.LeftoverAmount > 0 ? "col-md-6" : "col-md-12")">
+        <div class="wizard-option-card h-100">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-piggy-bank me-2"></i> Huchas</h5>
+            @if (Model.PiggyBanks.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach(var pb in Model.PiggyBanks)
+                    {
+                        var totalAmount = pb.MonthlyContribution + pb.RolloverAddition;
+                        if (totalAmount > 0)
+                        {
+                            <li class="list-group-item bg-transparent px-0 d-flex justify-content-between align-items-center border-bottom-0 pb-2">
+                                <span>@pb.Icon @pb.Name</span>
+                                <span class="fw-bold text-success">+@totalAmount.ToString("C")</span>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No hay aportaciones a huchas para este mes.</p>
+            }
+        </div>
+    </div>
+
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+    <a asp-action="Start" class="btn btn-link text-muted text-decoration-none px-0">
+        <i class="bi bi-arrow-left me-1"></i> Volver a revisar
+    </a>
+    
+    <form asp-action="Step4_Summary_Confirm" method="post" id="monthlyTransitionConfirmForm">
+        <button type="submit" id="btnConfirmMonthlyTransition" class="btn btn-primary btn-lg rounded-pill fw-bold px-5 shadow-sm">
+            <span class="btn-text">Empezar @Model.NewMonthName <i class="bi bi-rocket-takeoff ms-2"></i></span>
+            <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('monthlyTransitionConfirmForm').addEventListener('submit', function (e) {
+            // Set celebration flag
+            sessionStorage.setItem('pf-celebrate-new-month', 'true');
+            
+            // Set loading state
+            var btn = document.getElementById('btnConfirmMonthlyTransition');
+            var text = btn.querySelector('.btn-text');
+            var spinner = btn.querySelector('.spinner-border');
+            
+            btn.disabled = true;
+            text.classList.add('d-none');
+            spinner.classList.remove('d-none');
+        });
+    </script>
+}

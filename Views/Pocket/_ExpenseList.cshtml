@@ -1,0 +1,75 @@
+@using System.Globalization
+@using PocketFlow.Models
+@model PocketFlow.ViewModels.Pocket.PocketViewModel
+@{
+    var culture = Model.Currency == "EUR" ? new CultureInfo("es-ES") : new CultureInfo("en-US");
+}
+
+@if (!Model.Expenses.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-receipt display-4 d-block mb-3"></i>
+        <p>No hay gastos registrados todavía.</p>
+    </div>
+}
+else
+{
+    <ul class="list-group list-group-flush">
+        @foreach(var item in Model.Expenses)
+        {
+            <li class="list-group-item expense-list-item p-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 transition-base">
+                <div class="d-flex align-items-center">
+                    <div class="expense-icon-circle rounded-circle p-2 me-3 text-center" style="width: 48px; height: 48px; line-height: 32px;">
+                        <i class="bi @item.IconClass fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-truncate" style="max-width: 200px;">@(string.IsNullOrWhiteSpace(item.Description) ? item.CategoryDisplayName : item.Description)</h6>
+                        <small class="text-muted">@item.DateDisplay &bull; @item.CategoryDisplayName</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 w-100 w-sm-auto mt-2 mt-sm-0">
+                    <div class="fw-bold fs-5 text-dark">
+                        -@item.Amount.ToString("C", culture)
+                    </div>
+                    @if (Model.IsActivePlan)
+                    {
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-action text-primary border rounded-start px-3 py-1 btn-edit-expense" 
+                                    data-id="@item.Id" 
+                                    data-amount="@item.Amount.ToString("0.00", CultureInfo.InvariantCulture)" 
+                                    data-category="@item.Category" 
+                                    data-desc="@item.Description" 
+                                    title="Editar gasto">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-action text-danger border border-start-0 rounded-end px-3 py-1 btn-delete-expense" 
+                                    data-id="@item.Id" 
+                                    title="Eliminar gasto">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <div class="d-flex justify-content-center mt-4 pb-3">
+        <nav aria-label="Navegación de gastos">
+            <ul class="pagination mb-0">
+                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                    <button class="page-link btn-page" data-page="@(Model.CurrentPage - 1)">Anterior</button>
+                </li>
+                <li class="page-item disabled"><span class="page-link text-dark">@Model.CurrentPage de @Model.TotalPages</span></li>
+                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                    <button class="page-link btn-page" data-page="@(Model.CurrentPage + 1)">Siguiente</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}

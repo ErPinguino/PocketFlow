@@ -6,11 +6,34 @@
     <title>@ViewData["Title"] - PocketFlow</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="manifest" href="~/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="~/icons/apple-touch-icon.png" />
+    <meta name="theme-color" id="theme-color-meta" content="#ffffff" />
+    <script>
+        (function() {
+            var theme = localStorage.getItem('pocketflow-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            var metaThemeColor = document.getElementById('theme-color-meta');
+            if (theme === 'dark') {
+                metaThemeColor.setAttribute('content', '#101010');
+            } else if (theme === 'midnight') {
+                metaThemeColor.setAttribute('content', '#060d18');
+            } else {
+                metaThemeColor.setAttribute('content', '#f8f9fa'); // light background
+            }
+        })();
+    </script>
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/app.css" rel="stylesheet" />
+    <link href="~/css/toast.css" rel="stylesheet" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="bg-light pb-5 pb-md-0">
+@{
+    var currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<body class="pb-5 pb-md-0">
     <div class="d-flex flex-column flex-md-row min-vh-100">
         <!-- Sidebar para Escritorio -->
         <nav class="sidebar bg-white border-end d-none d-md-flex flex-column p-3">
@@ -20,18 +43,23 @@
             <hr>
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a asp-controller="Dashboard" asp-action="Index" class="nav-link active bg-light text-primary fw-bold">
+                    <a asp-controller="Dashboard" asp-action="Index" class="nav-link @(currentCtrl == "Dashboard" ? "active bg-light text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "Dashboard" ? "page" : null)">
                         <i class="bi bi-house-door-fill me-2"></i> Inicio
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link link-dark">
+                    <a asp-controller="Pocket" asp-action="Index" class="nav-link @(currentCtrl == "Pocket" ? "active bg-light text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "Pocket" ? "page" : null)">
                         <i class="bi bi-wallet2 me-2"></i> Bolsillo
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link link-dark">
+                    <a asp-controller="PiggyBanks" asp-action="Index" class="nav-link @(currentCtrl == "PiggyBanks" ? "active bg-light text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "PiggyBanks" ? "page" : null)">
                         <i class="bi bi-piggy-bank me-2"></i> Huchas
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="History" asp-action="Index" class="nav-link @(currentCtrl == "History" ? "active bg-light text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "History" ? "page" : null)">
+                        <i class="bi bi-clock-history me-2"></i> Historial
                     </a>
                 </li>
             </ul>
@@ -42,7 +70,7 @@
                     <strong>Perfil</strong>
                 </a>
                 <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
-                    <li><a class="dropdown-item" href="#">Ajustes</a></li>
+                    <li><a class="dropdown-item" asp-controller="Settings" asp-action="Index">Ajustes</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form asp-controller="Account" asp-action="Logout" method="post">
@@ -56,17 +84,21 @@
         <!-- Barra inferior para Móvil -->
         <nav class="mobile-nav bg-white border-top d-md-none fixed-bottom shadow-sm">
             <div class="d-flex justify-content-around p-2">
-                <a asp-controller="Dashboard" asp-action="Index" class="nav-link text-center text-primary fw-bold">
+                <a asp-controller="Dashboard" asp-action="Index" class="nav-link text-center @(currentCtrl == "Dashboard" ? "text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "Dashboard" ? "page" : null)">
                     <i class="bi bi-house-door-fill fs-4 d-block"></i>
                     <span class="small">Inicio</span>
                 </a>
-                <a href="#" class="nav-link text-center link-dark">
+                <a asp-controller="Pocket" asp-action="Index" class="nav-link text-center @(currentCtrl == "Pocket" ? "text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "Pocket" ? "page" : null)">
                     <i class="bi bi-wallet2 fs-4 d-block"></i>
                     <span class="small">Bolsillo</span>
                 </a>
-                <a href="#" class="nav-link text-center link-dark">
+                <a asp-controller="PiggyBanks" asp-action="Index" class="nav-link text-center @(currentCtrl == "PiggyBanks" ? "text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "PiggyBanks" ? "page" : null)">
                     <i class="bi bi-piggy-bank fs-4 d-block"></i>
                     <span class="small">Huchas</span>
+                </a>
+                <a asp-controller="History" asp-action="Index" class="nav-link text-center @(currentCtrl == "History" ? "text-primary fw-bold" : "link-dark")" aria-current="@(currentCtrl == "History" ? "page" : null)">
+                    <i class="bi bi-clock-history fs-4 d-block"></i>
+                    <span class="small">Historial</span>
                 </a>
                 <a href="#" class="nav-link text-center link-dark" data-bs-toggle="modal" data-bs-target="#profileModal">
                     <i class="bi bi-person fs-4 d-block"></i>
@@ -99,22 +131,27 @@
     </div>
 
     <!-- Botón flotante -->
-    <button class="fab btn btn-primary shadow-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#expenseModal" aria-label="Registrar gasto">
-        <i class="bi bi-plus-lg fs-4"></i>
-    </button>
+    @if (ViewContext.RouteData.Values["controller"]?.ToString() != "History")
+    {
+        <button class="fab btn btn-primary shadow-lg rounded-circle" data-bs-toggle="modal" data-bs-target="#expenseModal" aria-label="Registrar gasto">
+            <i class="bi bi-plus-lg fs-4"></i>
+        </button>
+    }
 
     <!-- Modal Registro Gasto (Sprint 4) -->
     <div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered align-items-end align-items-md-center m-0 m-md-auto" style="max-width: 500px;">
         <div class="modal-content border-0 shadow-lg rounded-top-4 rounded-md-3">
           <div class="modal-header border-0 pb-0">
-            <h5 class="modal-title fw-bold">Registrar Gasto</h5>
+            <h5 class="modal-title fw-bold" id="expenseModalTitle">Registrar Gasto</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
           <div class="modal-body pt-3">
             <div id="expenseModalAlert" class="alert alert-danger d-none" role="alert"></div>
             
             <form id="expenseForm" asp-controller="Expenses" asp-action="Create" method="post">
+                <input type="hidden" id="expenseId" name="Id" value="" />
+                
                 <div class="mb-4 text-center">
                     <label for="expenseAmount" class="form-label text-muted small fw-bold mb-1">IMPORTE</label>
                     <div class="input-group input-group-lg justify-content-center border-bottom border-2 border-primary pb-2 w-75 mx-auto">
@@ -150,7 +187,33 @@
 
                 <div class="d-grid mt-2">
                     <button type="submit" id="btnSaveExpense" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
-                        <span class="btn-text">Añadir gasto</span>
+                        <span class="btn-text" id="expenseBtnText">Añadir gasto</span>
+                        <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Eliminar Gasto -->
+    <div class="modal fade" id="deleteExpenseModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-body text-center p-4">
+            <i class="bi bi-exclamation-circle text-danger display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold mb-2">¿Eliminar gasto?</h5>
+            <p class="text-muted mb-4">Esta acción no se puede deshacer y los presupuestos se recalcularán automáticamente.</p>
+            
+            <div id="deleteExpenseAlert" class="alert alert-danger d-none small mb-3"></div>
+            
+            <form id="deleteExpenseForm" asp-controller="Expenses" asp-action="Delete" method="post">
+                <input type="hidden" id="deleteExpenseId" name="Id" value="" />
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnConfirmDelete" class="btn btn-danger rounded-pill px-4 fw-bold">
+                        <span class="btn-text">Sí, eliminar</span>
                         <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -162,7 +225,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/gsap/gsap.min.js"></script>
+    <script src="~/js/toast.js"></script>
+    <script src="~/js/animations.js"></script>
     <script src="~/js/expense-modal.js" asp-append-version="true"></script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
+    <script src="~/js/pwa.js" asp-append-version="true"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => {
+                    console.error('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

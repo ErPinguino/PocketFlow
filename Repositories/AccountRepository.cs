@@ -6,6 +6,7 @@ namespace PocketFlow.Repositories;
 public interface IAccountRepository
 {
     Task AddAsync(Account account);
+    Task<Account?> GetByIdAsync(Guid accountId);
 }
 
 public class AccountRepository : IAccountRepository
@@ -20,5 +21,10 @@ public class AccountRepository : IAccountRepository
     public async Task AddAsync(Account account)
     {
         await _context.Accounts.AddAsync(account);
+    }
+
+    public async Task<Account?> GetByIdAsync(Guid accountId)
+    {
+        return await _context.Accounts.FindAsync(accountId);
     }
 }

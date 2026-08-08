@@ -1,0 +1,196 @@
+@using System.Globalization
+@model PocketFlow.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = $"Histórico - {Model.Month} {Model.Year}";
+    Layout = "_AppLayout";
+    
+    var culture = Model.Currency == "EUR" ? new CultureInfo("es-ES") : new CultureInfo("en-US");
+    
+    int GetProgress(decimal spent, decimal initial)
+    {
+        if (initial <= 0) return spent > 0 ? 100 : 0;
+        var p = (int)((spent / initial) * 100);
+        return p > 100 ? 100 : p;
+    }
+}
+
+<div class="container py-4 px-3 px-md-4 max-w-1200">
+    <div class="mb-4 d-flex align-items-center">
+        <a asp-action="Index" class="btn btn-light rounded-circle me-3 shadow-sm" title="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h3 fw-bold mb-1">Histórico de @Model.Month @Model.Year</h1>
+            <p class="text-muted mb-0">Mes finalizado &bull; @Model.AccountName</p>
+        </div>
+    </div>
+
+    <!-- Banner Histórico -->
+    <div class="alert bg-white border-top border-4 border-info shadow-sm rounded mb-4 d-flex align-items-center p-4">
+        <div class="bg-info bg-opacity-10 rounded-circle p-3 me-4 text-info">
+            <i class="bi bi-clock-history fs-3"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-1 text-dark">Estás viendo @Model.Month @Model.Year</h5>
+            <p class="mb-0 text-muted">Este mes está cerrado y es de solo lectura. No puedes añadir, editar ni eliminar gastos, ni modificar huchas.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.RolloverText))
+    {
+        <!-- Final Status -->
+        <div class="alert @(Model.HistoricalFinalBalance >= 0 ? "alert-success" : "alert-danger") border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center">
+            <i class="bi @(Model.HistoricalFinalBalance >= 0 ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") fs-4 me-3"></i>
+            <div>
+                <strong>Balance Final</strong><br />
+                @Model.RolloverText
+            </div>
+        </div>
+
+        @if (Model.HasRollover)
+        {
+            <div class="card dashboard-card shadow-sm mb-4 border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-arrow-right-circle fs-3 text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Sobrante reasignado: @Model.RolloverAmount.ToString("C", culture)</h6>
+                            <p class="mb-0 text-muted small">@Model.RolloverDestinationText</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Tarjeta Principal (Bolsillo Libre) -->
+    <div class="card dashboard-card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <h5 class="text-muted small fw-bold text-uppercase mb-3">Bolsillo Libre Original</h5>
+            <h2 id="freePocketRemaining" class="display-4 fw-bold @(Model.FreePocketRemaining < 0 ? "text-danger" : "text-success") mb-1">
+                @Model.FreePocketRemaining.ToString("C", culture)
+            </h2>
+            <div class="d-flex justify-content-between text-muted small mb-3">
+                <span id="freePocketInitial">Presupuesto inicial: @Model.FreePocketInitial.ToString("C", culture)</span>
+                <span id="freePocketSpent">Gastado: @Model.FreePocketSpent.ToString("C", culture)</span>
+            </div>
+            <div class="progress progress-slim">
+                <div id="freePocketProgress" class="progress-bar @(Model.FreePocketRemaining < 0 ? "bg-danger" : "bg-primary")" 
+                     role="progressbar" 
+                     style="width: @GetProgress(Model.FreePocketSpent, Model.FreePocketInitial)%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Vida y Caprichos -->
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <div class="card dashboard-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-cart me-1"></i> Vida</div>
+                    <h5 id="lifeRemaining" class="fw-bold @(Model.LifeRemaining < 0 ? "text-danger" : "")">@Model.LifeRemaining.ToString("C", culture)</h5>
+                    <div id="lifeInitial" class="small text-muted mb-2">Presupuesto original: @Model.LifeBudget.ToString("C", culture)</div>
+                    <div class="progress" style="height: 4px;">
+                        <div id="lifeProgress" class="progress-bar @(Model.LifeRemaining < 0 ? "bg-danger" : "bg-info")" 
+                             style="width: @GetProgress(Model.LifeSpent, Model.LifeBudget)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card dashboard-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-controller me-1"></i> Caprichos</div>
+                    <h5 id="whimRemaining" class="fw-bold @(Model.WhimRemaining < 0 ? "text-danger" : "")">@Model.WhimRemaining.ToString("C", culture)</h5>
+                    <div id="whimInitial" class="small text-muted mb-2">Presupuesto original: @Model.WhimBudget.ToString("C", culture)</div>
+                    <div class="progress" style="height: 4px;">
+                        <div id="whimProgress" class="progress-bar @(Model.WhimRemaining < 0 ? "bg-danger" : "bg-warning")" 
+                             style="width: @GetProgress(Model.WhimSpent, Model.WhimBudget)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card dashboard-card shadow-sm mb-4 border-0">
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">Presupuesto Semanal Original</h6>
+                <span class="badge bg-secondary px-2 py-1 rounded-pill">
+                    @Model.WeeklyBudget.ToString("C", culture)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Huchas (Históricas) -->
+    <h5 class="fw-bold mb-3 mt-5">Huchas en @Model.Month @Model.Year</h5>
+    @if (!Model.PiggyBanks.Any())
+    {
+        <p class="text-muted">No tenías huchas activas este mes.</p>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var pb in Model.PiggyBanks)
+            {
+                <div class="col-12 col-md-6">
+                    <div class="card dashboard-card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="fs-4 me-3">@(string.IsNullOrEmpty(pb.Icon) ? "💰" : pb.Icon)</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-bold">@pb.Name</h6>
+                                    <div class="small text-muted">Aportación actual configurada: @pb.MonthlyContribution.ToString("C", culture)/mes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Gastos del mes cerrado -->
+    <h5 class="fw-bold mb-3 mt-5">Gastos Registrados</h5>
+    
+    <!-- Filtros de Pocket -->
+    <div class="row g-3 align-items-center mb-4">
+        <div class="col-12 col-md-auto d-flex justify-content-center">
+            <div class="btn-group shadow-sm" role="group">
+                <button type="button" class="btn btn-filter btn-primary" data-category="">Todos</button>
+                <button type="button" class="btn btn-filter btn-outline-primary" data-category="Life">Vida</button>
+                <button type="button" class="btn btn-filter btn-outline-primary" data-category="Whim">Caprichos</button>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="expenseSearch" class="form-control form-control-lg ps-5 bg-white border-0 shadow-sm" placeholder="Buscar gastos...">
+        </div>
+        
+        <div class="col-12 col-md-auto">
+            <select id="expenseSort" class="form-select form-select-lg border-0 shadow-sm bg-white" style="min-width: 180px;">
+                <option value="newest" selected>Más recientes</option>
+                <option value="oldest">Más antiguos</option>
+                <option value="highest">Mayor importe</option>
+                <option value="lowest">Menor importe</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Contenedor para el listado cargado vía AJAX -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-0" id="expenseListContainer">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pocket.js" asp-append-version="true"></script>
+}

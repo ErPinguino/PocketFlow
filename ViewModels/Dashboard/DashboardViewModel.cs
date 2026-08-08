@@ -31,4 +31,14 @@ public class DashboardViewModel
     public string StatusMessage { get; set; } = string.Empty;
 
     public List<PiggyBankDashboardItemViewModel> PiggyBanks { get; set; } = new();
+
+    public bool ShouldAskPaydayConfirmation { get; set; }
+
+    // Sprint 7: History fields
+    public bool IsHistorical { get; set; }
+    public decimal HistoricalFinalBalance { get; set; }
+    public string RolloverText { get; set; } = string.Empty;
+    public bool HasRollover { get; set; }
+    public decimal RolloverAmount { get; set; }
+    public string RolloverDestinationText { get; set; } = string.Empty;
 }

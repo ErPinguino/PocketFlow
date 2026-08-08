@@ -9,11 +9,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.Configure<PocketFlow.Models.WebPushOptions>(
+    builder.Configuration.GetSection(PocketFlow.Models.WebPushOptions.WebPush));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<PocketFlow.Repositories.IUserRepository, PocketFlow.Repositories.UserRepository>();
 builder.Services.AddScoped<PocketFlow.Services.IAuthService, PocketFlow.Services.AuthService>();
+
+builder.Services.AddHttpClient<PocketFlow.Services.ISupabaseExternalAuthService, PocketFlow.Services.SupabaseExternalAuthService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -54,6 +59,11 @@ builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<IAccountContextService, AccountContextService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IPaydayService, PaydayService>();
+builder.Services.AddScoped<IMonthlyTransitionService, MonthlyTransitionService>();
+builder.Services.AddScoped<IMonthlyHistoryService, MonthlyHistoryService>();
+builder.Services.AddScoped<IPiggyBankService, PiggyBankService>();
+builder.Services.AddScoped<IWebPushNotificationService, WebPushNotificationService>();
 
 var app = builder.Build();
 

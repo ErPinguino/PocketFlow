@@ -41,6 +41,17 @@
 
     <button type="submit" class="btn btn-primary w-100 mb-3">Crear cuenta</button>
 
+    <div class="d-flex align-items-center mb-3">
+        <hr class="flex-grow-1 border-secondary opacity-25">
+        <span class="mx-3 text-muted small">o</span>
+        <hr class="flex-grow-1 border-secondary opacity-25">
+    </div>
+
+    <a asp-controller="Account" asp-action="GoogleLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" class="btn btn-outline-secondary w-100 mb-4 d-flex align-items-center justify-content-center" style="gap: 10px;">
+        <i class="bi bi-google text-danger"></i>
+        <span>Continuar con Google</span>
+    </a>
+
     <div class="text-center">
         <a asp-action="Login" class="text-decoration-none text-muted small">¿Ya tienes cuenta? Iniciar sesión</a>
     </div>

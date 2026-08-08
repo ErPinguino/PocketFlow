@@ -1,0 +1,286 @@
+@using PocketFlow.ViewModels.PiggyBanks
+@model PiggyBanksViewModel
+
+@{
+    ViewData["Title"] = "Mis Huchas";
+    var culture = new System.Globalization.CultureInfo("es-ES");
+}
+
+@section Styles {
+    <link href="~/css/piggy-banks.css" rel="stylesheet" />
+}
+
+<div class="container-fluid p-3 p-md-4 max-w-dashboard mx-auto">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Mis Huchas</h4>
+            <p class="text-muted mb-0 small">Ahorra para tus metas</p>
+        </div>
+        <button class="btn btn-primary rounded-pill shadow-sm px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createPiggyBankModal">
+            <i class="bi bi-plus-lg me-1"></i> Nueva Hucha
+        </button>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    @if (!Model.ActivePiggyBanks.Any() && !Model.ArchivedPiggyBanks.Any())
+    {
+        <div class="text-center py-5">
+            <div class="display-1 text-muted opacity-50 mb-3">
+                <i class="bi bi-piggy-bank"></i>
+            </div>
+            <h5 class="fw-bold text-dark">No tienes ninguna hucha todavía.</h5>
+            <p class="text-muted mb-4">Empieza a separar dinero para tus objetivos.</p>
+            <button class="btn btn-outline-primary rounded-pill fw-bold px-4" data-bs-toggle="modal" data-bs-target="#createPiggyBankModal">
+                Crear mi primera hucha
+            </button>
+        </div>
+    }
+    else
+    {
+        @if (Model.ActivePiggyBanks.Any())
+        {
+            <div class="row g-3 mb-4">
+                @foreach (var pb in Model.ActivePiggyBanks)
+                {
+                    <div class="col-12 col-md-6 col-xl-4 gsap-card">
+                        <div class="card dashboard-card border-0 shadow-sm h-100 pb-card" data-id="@pb.Id">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="fs-1 me-3">@(string.IsNullOrEmpty(pb.Icon) ? "💰" : pb.Icon)</div>
+                                        <div>
+                                            <h5 class="fw-bold mb-0 text-dark">@pb.Name</h5>
+                                            @if (pb.IsCompleted)
+                                            {
+                                                <span class="badge bg-success rounded-pill mt-1">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Objetivo alcanzado
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-muted p-0 border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            <li><a class="dropdown-item btn-edit-pb" href="#" data-id="@pb.Id"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-warning btn-archive-pb" href="#" data-id="@pb.Id" data-name="@pb.Name"><i class="bi bi-archive me-2"></i>Archivar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="fw-bold text-dark fs-5">@pb.CurrentAmount.ToString("C", culture)</span>
+                                        <span class="text-muted small">/ @pb.TargetAmount.ToString("C", culture)</span>
+                                    </div>
+                                    <div class="progress" style="height: 12px; border-radius: 10px;">
+                                        <div class="progress-bar @(pb.IsCompleted ? "bg-success" : "bg-primary")" 
+                                             role="progressbar" 
+                                             style="width: @pb.ProgressPercentage%" 
+                                             aria-valuenow="@pb.ProgressPercentage" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <span class="small text-muted fw-bold">@pb.ProgressPercentage%</span>
+                                        @if (!pb.IsCompleted && pb.RemainingAmount > 0)
+                                        {
+                                            <span class="small text-muted">Te faltan @pb.RemainingAmount.ToString("C", culture)</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="bg-light rounded-3 p-2 text-center mt-auto">
+                                    <span class="small text-muted fw-bold">Aportación mensual:</span>
+                                    <span class="small fw-bold text-primary ms-1">@pb.MonthlyContribution.ToString("C", culture)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.ArchivedPiggyBanks.Any())
+        {
+            <h5 class="fw-bold mb-3 text-muted mt-5"><i class="bi bi-archive me-2"></i>Huchas Archivadas</h5>
+            <div class="row g-3">
+                @foreach (var pb in Model.ArchivedPiggyBanks)
+                {
+                    <div class="col-12 col-md-6 col-xl-4 gsap-card">
+                        <div class="card dashboard-card border-0 shadow-sm opacity-75 h-100 pb-card-archived" data-id="@pb.Id">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="fs-2 me-3 grayscale">@(string.IsNullOrEmpty(pb.Icon) ? "💰" : pb.Icon)</div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-muted">@pb.Name</h6>
+                                            <span class="badge bg-secondary rounded-pill mt-1">Archivada</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill btn-reactivate-pb" data-id="@pb.Id" data-name="@pb.Name">
+                                        Reactivar
+                                    </button>
+                                </div>
+                                <div class="mb-0 text-center">
+                                    <span class="fw-bold text-muted fs-5">@pb.CurrentAmount.ToString("C", culture)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal Create -->
+<div class="modal fade" id="createPiggyBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered align-items-end align-items-md-center m-0 m-md-auto" style="max-width: 500px;">
+        <div class="modal-content border-0 shadow-lg rounded-top-4 rounded-md-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Nueva Hucha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div id="createPbAlert" class="alert alert-danger d-none" role="alert"></div>
+                <form id="createPbForm" asp-controller="PiggyBanks" asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">ICONO (Emoji)</label>
+                        <input type="text" class="form-control form-control-lg bg-light border-0" id="createIcon" name="Icon" placeholder="Ej: 🏝️" maxlength="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">NOMBRE</label>
+                        <input type="text" class="form-control form-control-lg bg-light border-0" id="createName" name="Name" placeholder="Ej: Vacaciones" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">CANTIDAD INICIAL ACUMULADA</label>
+                        <input type="number" min="0" step="0.01" class="form-control form-control-lg bg-light border-0 fw-bold text-dark" id="createCurrentAmount" name="CurrentAmount" value="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">OBJETIVO TOTAL</label>
+                        <input type="number" min="0.01" step="0.01" class="form-control form-control-lg bg-light border-0 fw-bold text-dark" id="createTargetAmount" name="TargetAmount" placeholder="1000.00" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold mb-1">APORTACIÓN MENSUAL</label>
+                        <input type="number" min="0" step="0.01" class="form-control form-control-lg bg-light border-0 fw-bold text-dark" id="createMonthlyContribution" name="MonthlyContribution" placeholder="100.00" required>
+                        <small class="text-muted d-block mt-1">Se apartará automáticamente cada mes al confirmar tu nómina.</small>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <button type="submit" id="btnCreatePb" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
+                            <span class="btn-text">Crear Hucha</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editPiggyBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered align-items-end align-items-md-center m-0 m-md-auto" style="max-width: 500px;">
+        <div class="modal-content border-0 shadow-lg rounded-top-4 rounded-md-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Editar Hucha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div id="editPbAlert" class="alert alert-danger d-none" role="alert"></div>
+                <form id="editPbForm" asp-controller="PiggyBanks" asp-action="Edit" method="post">
+                    <input type="hidden" id="editId" name="Id" />
+                    
+                    <!-- Notice about CurrentAmount not being editable -->
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-info fs-5 me-2"></i>
+                        <span class="small">El dinero actual acumulado está protegido. Si necesitas ajustarlo, podrás hacerlo mediante movimientos (próximamente).</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">ICONO (Emoji)</label>
+                        <input type="text" class="form-control form-control-lg bg-light border-0" id="editIcon" name="Icon" maxlength="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">NOMBRE</label>
+                        <input type="text" class="form-control form-control-lg bg-light border-0" id="editName" name="Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">OBJETIVO TOTAL</label>
+                        <input type="number" min="0.01" step="0.01" class="form-control form-control-lg bg-light border-0 fw-bold text-dark" id="editTargetAmount" name="TargetAmount" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold mb-1">APORTACIÓN MENSUAL</label>
+                        <input type="number" min="0" step="0.01" class="form-control form-control-lg bg-light border-0 fw-bold text-dark" id="editMonthlyContribution" name="MonthlyContribution" required>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <button type="submit" id="btnEditPb" class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm">
+                            <span class="btn-text">Guardar cambios</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Archive -->
+<div class="modal fade" id="archivePiggyBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-archive text-warning display-4 mb-3 d-block"></i>
+                <h5 class="fw-bold mb-2">¿Archivar Hucha?</h5>
+                <p class="text-muted mb-4">Esta hucha dejará de recibir aportaciones mensuales, pero conservarás su historial.</p>
+                
+                <div id="archivePbAlert" class="alert alert-danger d-none small mb-3"></div>
+                
+                <form id="archivePbForm" asp-controller="PiggyBanks" asp-action="Archive" method="post">
+                    <input type="hidden" id="archivePbId" name="Id" value="" />
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="btnConfirmArchive" class="btn btn-warning text-dark rounded-pill px-4 fw-bold">
+                            <span class="btn-text">Sí, archivar</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Reactivate -->
+<div class="modal fade" id="reactivatePiggyBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-arrow-counterclockwise text-primary display-4 mb-3 d-block"></i>
+                <h5 class="fw-bold mb-2">¿Reactivar Hucha?</h5>
+                <p class="text-muted mb-4" id="reactivateMessage">La hucha volverá a recibir aportaciones a partir del próximo mes.</p>
+                
+                <div id="reactivatePbAlert" class="alert alert-danger d-none small mb-3"></div>
+                
+                <form id="reactivatePbForm" asp-controller="PiggyBanks" asp-action="Reactivate" method="post">
+                    <input type="hidden" id="reactivatePbId" name="Id" value="" />
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" id="btnConfirmReactivate" class="btn btn-primary rounded-pill px-4 fw-bold">
+                            <span class="btn-text">Sí, reactivar</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/piggy-banks.js" asp-append-version="true"></script>
+}

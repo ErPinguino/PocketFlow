@@ -45,7 +45,7 @@ public class AuthService : IAuthService
         
         bool isPasswordValid = false;
         
-        if (user != null)
+        if (user != null && !string.IsNullOrEmpty(user.PasswordHash))
         {
             isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
         }

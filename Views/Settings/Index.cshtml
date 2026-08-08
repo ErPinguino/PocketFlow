@@ -1,0 +1,158 @@
+@model PocketFlow.Models.Account
+@{
+    ViewData["Title"] = "Ajustes";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <h2 class="fw-bold mb-4">Ajustes</h2>
+
+            <div class="settings-card card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3 text-uppercase small tracking-wide text-primary">Apariencia</h5>
+                    <p class="text-muted mb-4">Elige el tema visual para PocketFlow.</p>
+                    
+                    <div class="row g-3 mb-4">
+                        <!-- Theme: Claro -->
+                        <div class="col-12 col-md-4">
+                            <button class="theme-card card h-100 w-100 text-start border-2 bg-white" data-theme-value="light" aria-pressed="false" role="switch">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex gap-2">
+                                            <div class="rounded-circle bg-success" style="width: 16px; height: 16px;"></div>
+                                            <div class="rounded-circle bg-light" style="width: 16px; height: 16px; border: 1px solid #dee2e6;"></div>
+                                        </div>
+                                        <i class="bi bi-check-circle-fill text-success fs-5 theme-check d-none"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark m-0">Claro</h6>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- Theme: Oscuro -->
+                        <div class="col-12 col-md-4">
+                            <button class="theme-card card h-100 w-100 text-start border-2" style="background-color: #1e1e1e; border-color: #334155;" data-theme-value="dark" aria-pressed="false" role="switch">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex gap-2">
+                                            <div class="rounded-circle bg-success" style="width: 16px; height: 16px;"></div>
+                                            <div class="rounded-circle" style="width: 16px; height: 16px; background-color: #2d2d2d; border: 1px solid #475569;"></div>
+                                        </div>
+                                        <i class="bi bi-check-circle-fill text-success fs-5 theme-check d-none"></i>
+                                    </div>
+                                    <h6 class="fw-bold m-0" style="color: #f8fafc;">Oscuro</h6>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- Theme: Medianoche -->
+                        <div class="col-12 col-md-4">
+                            <button class="theme-card card h-100 w-100 text-start border-2" style="background-color: #0F1B2D; border-color: #22334D;" data-theme-value="midnight" aria-pressed="false" role="switch">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex gap-2">
+                                            <div class="rounded-circle" style="width: 16px; height: 16px; background-color: #3B82F6;"></div>
+                                            <div class="rounded-circle" style="width: 16px; height: 16px; background-color: #132238; border: 1px solid #334b71;"></div>
+                                        </div>
+                                        <i class="bi bi-check-circle-fill fs-5 theme-check d-none" style="color: #3B82F6;"></i>
+                                    </div>
+                                    <h6 class="fw-bold m-0" style="color: #F3F7FC;">Medianoche</h6>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <hr class="mb-4" />
+                    
+                    <h5 class="card-title fw-bold mb-3 text-uppercase small tracking-wide text-primary">Accesibilidad</h5>
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="reducedMotionCheck">
+                        <label class="form-check-label fw-bold" for="reducedMotionCheck">Reducir animaciones</label>
+                        <div class="text-muted small">Desactiva animaciones decorativas y transiciones de interfaz.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-card card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3 text-uppercase small tracking-wide text-primary">Notificaciones</h5>
+                    <p class="text-muted mb-4">Mantente al día de tu presupuesto y objetivos.</p>
+
+                    <div id="pushPermissionSection" class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded pf-control-surface">
+                            <div>
+                                <h6 class="fw-bold mb-1"><i class="bi bi-bell me-2"></i> Notificaciones Push</h6>
+                                <p class="text-muted small mb-0" id="pushStatusText">Comprobando estado...</p>
+                            </div>
+                            <button id="btnEnablePush" class="btn btn-primary d-none">Activar Notificaciones</button>
+                        </div>
+                    </div>
+
+                    <form id="notificationPrefsForm">
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input pref-toggle" type="checkbox" role="switch" id="notifyPayday" @(Model.NotifyPayday ? "checked" : "")>
+                            <label class="form-check-label fw-bold" for="notifyPayday">Día de cobro</label>
+                            <div class="text-muted small">Te avisaremos cuando tu nómina esté disponible para planificar.</div>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input pref-toggle" type="checkbox" role="switch" id="notifyWeeklyBudget" @(Model.NotifyWeeklyBudget ? "checked" : "")>
+                            <label class="form-check-label fw-bold" for="notifyWeeklyBudget">Presupuesto semanal</label>
+                            <div class="text-muted small">Avisos cuando estés cerca de tu límite semanal de Vida y Caprichos.</div>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input pref-toggle" type="checkbox" role="switch" id="notifyPiggyBanks" @(Model.NotifyPiggyBanks ? "checked" : "")>
+                            <label class="form-check-label fw-bold" for="notifyPiggyBanks">Huchas</label>
+                            <div class="text-muted small">Actualizaciones de progreso en tus objetivos de ahorro.</div>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input pref-toggle" type="checkbox" role="switch" id="notifyExpenseReminders" @(Model.NotifyExpenseReminders ? "checked" : "")>
+                            <label class="form-check-label fw-bold" for="notifyExpenseReminders">Recordatorios de gastos</label>
+                            <div class="text-muted small">Recordatorios amigables si olvidas registrar gastos.</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pf-control-surface {
+        background-color: var(--pf-surface-raised);
+        border: 1px solid var(--pf-border-soft);
+    }
+    .theme-card {
+        cursor: pointer;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        border: 2px solid transparent !important;
+    }
+    .theme-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Specific selection logic for Light */
+    .theme-card[data-theme-value="light"][aria-pressed="true"] {
+        border-color: #10b981 !important;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+    
+    /* Specific selection logic for Dark */
+    .theme-card[data-theme-value="dark"][aria-pressed="true"] {
+        border-color: #10b981 !important;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+    
+    /* Specific selection logic for Midnight */
+    .theme-card[data-theme-value="midnight"][aria-pressed="true"] {
+        border-color: #3B82F6 !important;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+    }
+
+    .theme-card[aria-pressed="true"] .theme-check {
+        display: block !important;
+    }
+</style>

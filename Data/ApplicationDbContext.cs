@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Expense> Expenses { get; set; } = null!;
     public DbSet<PiggyBank> PiggyBanks { get; set; } = null!;
     public DbSet<MonthlyRollover> MonthlyRollovers { get; set; } = null!;
+    public DbSet<PushSubscription> PushSubscriptions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

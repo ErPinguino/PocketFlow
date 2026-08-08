@@ -38,6 +38,9 @@ namespace PocketFlow.Migrations
                         .HasColumnType("character varying(3)")
                         .HasDefaultValue("EUR");
 
+                    b.Property<DateTime?>("LastPaycheckConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<decimal>("MonthlyIncome")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -46,6 +49,18 @@ namespace PocketFlow.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("NotifyExpenseReminders")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotifyPayday")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotifyPiggyBanks")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotifyWeeklyBudget")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Payday")
                         .HasColumnType("integer");
@@ -274,6 +289,54 @@ namespace PocketFlow.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PocketFlow.Models.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserAgent")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.ToTable("PushSubscriptions");
+                });
+
             modelBuilder.Entity("PocketFlow.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -297,8 +360,11 @@ namespace PocketFlow.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("SupabaseUserId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -306,6 +372,9 @@ namespace PocketFlow.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("SupabaseUserId")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -380,6 +449,17 @@ namespace PocketFlow.Migrations
                 {
                     b.HasOne("PocketFlow.Models.Account", "Account")
                         .WithMany("PiggyBanks")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("PocketFlow.Models.PushSubscription", b =>
+                {
+                    b.HasOne("PocketFlow.Models.Account", "Account")
+                        .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

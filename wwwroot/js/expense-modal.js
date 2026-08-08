@@ -2,7 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const expenseModal = document.getElementById('expenseModal');
     if (!expenseModal) return;
 
-    const modal = new bootstrap.Modal(expenseModal);
+    const expenseIdInput = document.getElementById('expenseId');
+    const modalTitle = document.getElementById('expenseModalTitle');
+    
     const form = document.getElementById('expenseForm');
     const amountInput = document.getElementById('expenseAmount');
     const btnSave = document.getElementById('btnSaveExpense');
@@ -10,18 +12,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinner = btnSave.querySelector('.spinner-border');
     const alertBox = document.getElementById('expenseModalAlert');
 
+    // Proper modal initialization
+    const modalElement = document.getElementById('expenseModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    // This handles opening the modal explicitly for creation
+    document.querySelector('[data-bs-target="#expenseModal"]')?.addEventListener('click', () => {
+        form.reset();
+        form.action = '/Expenses/Create';
+        expenseIdInput.value = '';
+        modalTitle.textContent = 'Registrar Gasto';
+        btnText.textContent = 'Añadir gasto';
+    });
+
     expenseModal.addEventListener('shown.bs.modal', () => {
         amountInput.focus();
     });
 
     expenseModal.addEventListener('hidden.bs.modal', () => {
         form.reset();
+        form.action = '/Expenses/Create';
+        expenseIdInput.value = '';
+        modalTitle.textContent = 'Registrar Gasto';
+        btnText.textContent = 'Añadir gasto';
+        
         alertBox.classList.add('d-none');
         btnSave.disabled = false;
         btnText.classList.remove('d-none');
         spinner.classList.add('d-none');
         
-        // Remove validation classes if any
         form.classList.remove('was-validated');
     });
 
@@ -60,21 +79,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(result.errorMessage || 'Error al guardar el gasto.');
             }
 
-            // Success, close modal
+            // PRIMERO: cerrar modal y restaurar botón/loading visual
             modal.hide();
+            btnSave.disabled = false;
+            btnText.classList.remove('d-none');
+            spinner.classList.add('d-none');
 
-            // Check if we are on the dashboard to update it dynamically
-            if (result.dashboardSummary && typeof updateDashboardUI === 'function') {
-                updateDashboardUI(result.dashboardSummary, result.warnings);
+            // DESPUÉS: Actualizaciones secundarias
+            let uiUpdated = false;
+
+            try {
+                if (result.dashboardSummary && typeof updateDashboardUI === 'function') {
+                    updateDashboardUI(result.dashboardSummary, result.warnings);
+                    uiUpdated = true;
+                } 
+                
+                if (typeof refreshPocketList === 'function') {
+                    // refreshPocketList might be an async function, await if it returns a Promise
+                    const refreshResult = refreshPocketList();
+                    if (refreshResult instanceof Promise) {
+                        await refreshResult;
+                    }
+                    uiUpdated = true;
+                }
+            } catch (secError) {
+                console.error("Error secundario al actualizar la UI:", secError);
+                // Si la UI falla, el modal ya se cerró y el gasto está guardado.
+                // Podríamos mostrar un warning
+                if (window.Toasts) Toasts.warning('Gasto guardado, pero falló la actualización visual.');
+                return; // Cortar el flujo aquí para no hacer el toast normal
+            }
+
+            const successMsg = form.action.includes('Edit') ? 'Gasto actualizado correctamente' : 'Gasto guardado correctamente';
+
+            if (uiUpdated) {
+                if (window.Toasts) Toasts.success(successMsg);
             } else {
-                // If we are in another page, just reload to see updates
+                sessionStorage.setItem('pf-toast-success', successMsg);
                 window.location.reload();
             }
 
         } catch (error) {
             alertBox.textContent = error.message;
             alertBox.classList.remove('d-none');
-            
+        } finally {
             btnSave.disabled = false;
             btnText.classList.remove('d-none');
             spinner.classList.add('d-none');

@@ -1,0 +1,162 @@
+@model PocketFlow.ViewModels.MonthlyTransition.MonthlyPlanReviewViewModel
+@{
+    ViewData["Title"] = "Revisar plan";
+    Layout = "_MonthlyTransitionLayout";
+    ViewData["Step"] = 2; // Sigue siendo paso 2 lógicamente
+}
+
+<div class="text-center mb-5">
+    <h2 class="fw-bold mb-2">Revisar cantidades</h2>
+    <p class="fs-5 text-muted">Ajusta tu presupuesto para el nuevo mes.</p>
+</div>
+
+<form asp-action="Step3_PlanReview" method="post">
+    
+    <div class="row g-4 mb-4">
+        <!-- Ingresos y Gastos Fijos -->
+        <div class="col-12 col-md-6">
+            <div class="wizard-option-card">
+                <h5 class="fw-bold text-primary mb-4"><i class="bi bi-wallet2 me-2"></i> Base del mes</h5>
+                
+                <div class="mb-4">
+                    <label asp-for="MonthlyIncome" class="wizard-form-label">Ingresos previstos</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" step="0.01" class="form-control" asp-for="MonthlyIncome" id="inputIncome" />
+                        <span class="input-group-text bg-light">€</span>
+                    </div>
+                    <span asp-validation-for="MonthlyIncome" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="FixedExpenses" class="wizard-form-label">Gastos Fijos</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" step="0.01" class="form-control" asp-for="FixedExpenses" id="inputFixed" />
+                        <span class="input-group-text bg-light">€</span>
+                    </div>
+                    <span asp-validation-for="FixedExpenses" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presupuesto Flexible -->
+        <div class="col-12 col-md-6">
+            <div class="wizard-option-card h-100">
+                <h5 class="fw-bold text-primary mb-4"><i class="bi bi-cart3 me-2"></i> Presupuestos</h5>
+                
+                <div class="mb-4">
+                    <label asp-for="LifeBudget" class="wizard-form-label">Presupuesto Vida</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" step="0.01" class="form-control" asp-for="LifeBudget" id="inputLife" />
+                        <span class="input-group-text bg-light">€</span>
+                    </div>
+                    <span asp-validation-for="LifeBudget" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="WhimBudget" class="wizard-form-label">Presupuesto Caprichos</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" step="0.01" class="form-control" asp-for="WhimBudget" id="inputWhim" />
+                        <span class="input-group-text bg-light">€</span>
+                    </div>
+                    <span asp-validation-for="WhimBudget" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Huchas -->
+    @if (Model.PiggyBanks.Any())
+    {
+        <div class="wizard-option-card mb-4">
+            <h5 class="fw-bold text-primary mb-4"><i class="bi bi-piggy-bank me-2"></i> Aportaciones a Huchas</h5>
+            
+            <div class="row g-3">
+                @for (int i = 0; i < Model.PiggyBanks.Count; i++)
+                {
+                    <input type="hidden" asp-for="PiggyBanks[i].Id" />
+                    <input type="hidden" asp-for="PiggyBanks[i].Name" />
+                    <input type="hidden" asp-for="PiggyBanks[i].Icon" />
+                    <input type="hidden" asp-for="PiggyBanks[i].IsActive" />
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label class="wizard-form-label">@Model.PiggyBanks[i].Icon @Model.PiggyBanks[i].Name</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control piggy-input" asp-for="PiggyBanks[i].MonthlyContribution" />
+                            <span class="input-group-text bg-light">€</span>
+                        </div>
+                        <span asp-validation-for="PiggyBanks[i].MonthlyContribution" class="text-danger small"></span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Preview Resumen Inferior -->
+    <div class="bg-light p-4 rounded-4 mb-5 border">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="d-block wizard-form-label mb-1">Bolsillo Libre Resultante</span>
+                <span class="fs-3 fw-bold text-dark" id="displayFreePocket">0,00 €</span>
+            </div>
+            <div class="text-end">
+                <span class="d-block wizard-form-label mb-1">Total Ahorro</span>
+                <span class="fs-4 fw-bold text-success" id="displayTotalSavings">0,00 €</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <a asp-action="Step2_PlanPrompt" class="btn btn-link text-muted text-decoration-none px-0">
+            <i class="bi bi-arrow-left me-1"></i> Atrás
+        </a>
+        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold px-5 shadow-sm">
+            Confirmar plan <i class="bi bi-check2 ms-2"></i>
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputIncome = document.getElementById('inputIncome');
+            const inputFixed = document.getElementById('inputFixed');
+            const inputLife = document.getElementById('inputLife');
+            const inputWhim = document.getElementById('inputWhim');
+            const piggyInputs = document.querySelectorAll('.piggy-input');
+            const displayFree = document.getElementById('displayFreePocket');
+            const displaySavings = document.getElementById('displayTotalSavings');
+
+            function calculateTotals() {
+                const income = parseFloat(inputIncome.value) || 0;
+                const fixed = parseFloat(inputFixed.value) || 0;
+                const life = parseFloat(inputLife.value) || 0;
+                const whim = parseFloat(inputWhim.value) || 0;
+                
+                let savings = 0;
+                piggyInputs.forEach(i => savings += parseFloat(i.value) || 0);
+
+                const free = income - fixed - life - whim - savings;
+
+                displaySavings.innerText = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(savings);
+                displayFree.innerText = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(free);
+                
+                if (free < 0) {
+                    displayFree.classList.remove('text-dark');
+                    displayFree.classList.add('text-danger');
+                } else {
+                    displayFree.classList.add('text-dark');
+                    displayFree.classList.remove('text-danger');
+                }
+            }
+
+            inputIncome.addEventListener('input', calculateTotals);
+            inputFixed.addEventListener('input', calculateTotals);
+            inputLife.addEventListener('input', calculateTotals);
+            inputWhim.addEventListener('input', calculateTotals);
+            piggyInputs.forEach(i => i.addEventListener('input', calculateTotals));
+
+            calculateTotals();
+        });
+    </script>
+}
