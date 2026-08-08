@@ -139,7 +139,15 @@ public class InstallmentService : IInstallmentService
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            try 
+            { 
+                await transaction.RollbackAsync(); 
+            } 
+            catch (Exception rollbackEx) 
+            { 
+                _logger.LogWarning(rollbackEx, "Failed to rollback transaction after an error during CreatePlanAsync.");
+            }
+            
             _logger.LogError(ex, "Error creating installment plan");
             return ResultViewModel.Failure("Error al crear el pago a plazos.");
         }
@@ -203,7 +211,15 @@ public class InstallmentService : IInstallmentService
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            try 
+            { 
+                await transaction.RollbackAsync(); 
+            } 
+            catch (Exception rollbackEx) 
+            { 
+                _logger.LogWarning(rollbackEx, "Failed to rollback transaction after an error during LiquidatePlanAsync.");
+            }
+
             _logger.LogError(ex, "Error liquidating installment plan");
             return ResultViewModel.Failure("Error al liquidar el pago a plazos.");
         }
