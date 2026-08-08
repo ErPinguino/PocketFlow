@@ -97,32 +97,23 @@ public class WebPushNotificationService : IWebPushNotificationService
 
         foreach (var sub in subscriptions)
         {
-            var sw = Stopwatch.StartNew();
             try
             {
                 var pushSubscription = new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth);
                 await _webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
-                sw.Stop();
-                _logger.LogInformation("Successfully sent push notification to {EndpointHost} in {ElapsedMilliseconds}ms.", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds);
                 successCount++;
             }
             catch (WebPushException exception)
             {
-                sw.Stop();
-                _logger.LogWarning(exception, "Failed to send push notification to {EndpointHost} in {ElapsedMilliseconds}ms. StatusCode: {StatusCode}", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds, exception.StatusCode);
-                
-                // If it's 404 (Not Found) or 410 (Gone), the subscription has expired or is no longer valid.
                 if (exception.StatusCode == System.Net.HttpStatusCode.Gone || exception.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    _logger.LogInformation("Subscription for endpoint {Endpoint} is no longer valid. Marking for removal.", sub.Endpoint);
                     subscriptionsToRemove.Add(sub);
                 }
                 failureCount++;
             }
             catch (Exception ex)
             {
-                sw.Stop();
-                _logger.LogError(ex, "Unexpected error sending push notification to {EndpointHost} in {ElapsedMilliseconds}ms", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds);
+                _logger.LogError(ex, "Unexpected error sending push notification to {EndpointHost}", new Uri(sub.Endpoint).Host);
                 failureCount++;
             }
         }

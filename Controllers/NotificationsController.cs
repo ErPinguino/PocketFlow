@@ -118,7 +118,7 @@ public class NotificationsController : Controller
         var result = await pushService.SendNotificationToEndpointAsync(
             accountId: account.Id,
             endpoint: model.Endpoint,
-            title: "PocketFlow",
+            title: "Prueba de conexión",
             body: "Las notificaciones funcionan correctamente.",
             url: "/Dashboard",
             tag: "pocketflow-test",

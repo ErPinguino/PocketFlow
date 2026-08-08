@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reducedMotionCheck) {
         initReducedMotionUI(reducedMotionCheck);
     }
+    
+    const soundsEnabledCheck = document.getElementById('soundsEnabledCheck');
+    if (soundsEnabledCheck) {
+        initSoundsEnabledUI(soundsEnabledCheck);
+    }
 });
 
 function initThemeSettingsUI(themeCards) {
@@ -79,6 +84,19 @@ function initReducedMotionUI(checkbox) {
         // Maybe trigger a global event or function for animations.js to re-read it
         if (typeof window.initAnimations === 'function' && !e.target.checked) {
             // Can't easily restart GSAP unless reload or re-init
+        }
+    });
+}
+
+function initSoundsEnabledUI(checkbox) {
+    const isEnabled = localStorage.getItem('pocketflow-sounds-enabled') !== 'false';
+    checkbox.checked = isEnabled;
+    
+    checkbox.addEventListener('change', (e) => {
+        if (window.PocketFlowSound) {
+            window.PocketFlowSound.setEnabled(e.target.checked);
+        } else {
+            localStorage.setItem('pocketflow-sounds-enabled', e.target.checked);
         }
     });
 }

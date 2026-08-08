@@ -114,8 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (uiUpdated) {
                 if (window.Toasts) Toasts.success(successMsg);
+                if (window.PocketFlowSound) window.PocketFlowSound.success();
             } else {
                 sessionStorage.setItem('pf-toast-success', successMsg);
+                sessionStorage.setItem('pf-sound-success', 'true');
                 window.location.reload();
             }
 
@@ -195,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Cierra el modal solo en caso de éxito
                 modal.hide();
                 sessionStorage.setItem('pf-toast-success', 'Pago a plazos creado correctamente.');
+                sessionStorage.setItem('pf-sound-success', 'true');
                 window.location.reload();
 
             } catch (error) {

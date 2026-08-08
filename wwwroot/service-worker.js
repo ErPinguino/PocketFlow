@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `pocketflow-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -83,17 +83,14 @@ self.addEventListener('fetch', event => {
 
 // WEB PUSH EVENTS
 self.addEventListener('push', event => {
-    console.log("[PocketFlow Push] PUSH EVENT RECEIVED");
     let payload = {};
 
     try {
         payload = event.data ? event.data.json() : {};
-        console.log("[PocketFlow Push] Parsed payload (JSON):", payload);
     } catch (error) {
         payload = {
             body: event.data ? event.data.text() : ""
         };
-        console.log("[PocketFlow Push] Parsed payload (TEXT):", payload);
     }
 
     const notification = payload.notification ?? payload;
@@ -101,7 +98,7 @@ self.addEventListener('push', event => {
     const title =
         notification.title ??
         payload.title ??
-        "PocketFlow";
+        "Nueva notificación";
 
     const options = {
         body:
@@ -124,24 +121,8 @@ self.addEventListener('push', event => {
         }
     };
 
-    console.log("[PocketFlow Push] Calling showNotification", title, options);
-    
     event.waitUntil(
-        (async () => {
-            try {
-                await self.registration.showNotification(title, options);
-                console.log("[PocketFlow Push] showNotification RESOLVED");
-            } catch (error) {
-                console.error(
-                    "[PocketFlow Push] showNotification REJECTED",
-                    error,
-                    error?.name,
-                    error?.message,
-                    error?.stack
-                );
-                throw error;
-            }
-        })()
+        self.registration.showNotification(title, options)
     );
 });
 

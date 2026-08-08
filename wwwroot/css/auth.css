@@ -1,6 +1,20 @@
-body { background-color: #f4fcf7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-.auth-card { width: 100%; max-width: 400px; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: #ffffff; }
-.btn-primary { background-color: #10b981; border-color: #10b981; }
-.btn-primary:hover { background-color: #059669; border-color: #059669; }
-.text-primary { color: #10b981 !important; }
-.form-control:focus { border-color: #10b981; box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }
+body { 
+    background-color: var(--pf-surface-page); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    height: 100vh; 
+    margin: 0; 
+}
+.auth-card { 
+    width: 100%; 
+    max-width: 400px; 
+    padding: 2rem; 
+    border-radius: 12px; 
+    box-shadow: var(--pf-shadow-md); 
+    background: var(--pf-surface-card); 
+}
+.btn-primary { background-color: var(--pf-primary); border-color: var(--pf-primary); color: white; }
+.btn-primary:hover { background-color: var(--pf-primary-hover); border-color: var(--pf-primary-hover); color: white; }
+.text-primary { color: var(--pf-primary) !important; }
+.form-control:focus { border-color: var(--pf-primary); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }

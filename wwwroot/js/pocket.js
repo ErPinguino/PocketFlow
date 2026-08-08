@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Éxito
                 deleteModal.hide();
+                if (window.PocketFlowSound) window.PocketFlowSound.delete();
                 
                 if (result.dashboardSummary && typeof updateDashboardUI === 'function') {
                     updateDashboardUI(result.dashboardSummary, []);
