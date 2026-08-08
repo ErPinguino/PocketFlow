@@ -1,4 +1,5 @@
-const CACHE_NAME = 'pocketflow-static-v3';
+const CACHE_VERSION = 'v4';
+const CACHE_NAME = `pocketflow-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_TO_CACHE = [
@@ -111,11 +112,6 @@ self.addEventListener('push', event => {
             notification.icon ??
             payload.icon ??
             "/icons/icon-192.png",
-        badge: '/icons/icon-192.png',
-        tag:
-            notification.tag ??
-            payload.tag ??
-            "pocketflow",
         data: {
             url:
                 notification.url ??
@@ -125,8 +121,7 @@ self.addEventListener('push', event => {
                 notification.type ??
                 payload.type ??
                 "generic"
-        },
-        vibrate: [200, 100, 200]
+        }
     };
 
     console.log("[PocketFlow Push] Calling showNotification", title, options);
