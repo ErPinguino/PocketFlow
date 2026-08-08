@@ -23,44 +23,85 @@
             <span class="text-primary fw-bold">- @((Model.TotalMonthlySavings ?? 0).ToString("C"))</span>
         </div>
         <hr />
-        <div class="d-flex justify-content-between">
-            <span class="fw-bold">Bolsillo Libre Disponible:</span>
-            <span class="fw-bold fs-5 text-success">@((Model.AvailableFreePocket ?? 0).ToString("C"))</span>
-        </div>
+        
+        @if (Model.HasDeficit)
+        {
+            <div class="d-flex justify-content-between text-danger">
+                <span class="fw-bold">Déficit:</span>
+                <span class="fw-bold fs-5">@Model.DeficitAmount.ToString("C")</span>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between @(Model.IsZero ? "" : "text-success")">
+                <span class="fw-bold">Bolsillo Libre:</span>
+                <span class="fw-bold fs-5">@((Model.AvailableFreePocket ?? 0).ToString("C"))</span>
+            </div>
+        }
     </div>
 </div>
 
-<form asp-action="Pocket" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<form asp-action="Pocket" method="post" id="pocketForm">
+    <input type="hidden" asp-for="RepartoMode" id="RepartoMode" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="d-flex justify-content-between align-items-end">
-                <label asp-for="LifeBudget" class="form-label mb-1">Vida (comida, transporte...)</label>
-                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 mb-1" id="btnSplit5050">
-                    <i class="bi bi-magic"></i> 50/50
+    @if (Model.HasDeficit)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Déficit de planificación</h5>
+            <p class="mb-0">Tu planificación supera tus ingresos en <strong>@Model.DeficitAmount.ToString("C")</strong>.</p>
+            <hr>
+            <p class="mb-0 small">Reduce tus gastos fijos o tus aportaciones a huchas antes de continuar.</p>
+        </div>
+    }
+    else if (Model.IsZero)
+    {
+        <div class="alert alert-secondary" role="alert">
+            <p class="mb-0">Has asignado todos tus ingresos. No te queda dinero libre para repartir.</p>
+        </div>
+    }
+    else
+    {
+        <h5 class="mb-3">¿Cómo quieres repartir tu bolsillo?</h5>
+        <ul class="nav nav-pills nav-fill mb-4 bg-light rounded p-1" id="repartoPills" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.RepartoMode == "Recommended" ? "active" : "") fw-bold" id="pills-recommended-tab" data-bs-toggle="pill" type="button" role="tab" aria-selected="@(Model.RepartoMode == "Recommended" ? "true" : "false")">
+                    <i class="bi bi-magic me-1"></i> Recomendado 50/50
                 </button>
-            </div>
-            <div class="input-group">
-                <input asp-for="LifeBudget" class="form-control" type="number" step="0.01" />
-                <span class="input-group-text">€</span>
-            </div>
-            <span asp-validation-for="LifeBudget" class="text-danger small"></span>
-        </div>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.RepartoMode == "Custom" ? "active" : "") fw-bold" id="pills-custom-tab" data-bs-toggle="pill" type="button" role="tab" aria-selected="@(Model.RepartoMode == "Custom" ? "true" : "false")">
+                    <i class="bi bi-sliders me-1"></i> Personalizado
+                </button>
+            </li>
+        </ul>
 
-        <div class="col-md-6 mb-3">
-            <label asp-for="WhimBudget" class="form-label">Caprichos (ocio, salidas...)</label>
-            <div class="input-group">
-                <input asp-for="WhimBudget" class="form-control" type="number" step="0.01" />
-                <span class="input-group-text">€</span>
-            </div>
-            <span asp-validation-for="WhimBudget" class="text-danger small"></span>
-        </div>
-    </div>
+        <div id="validationMessage" class="alert alert-warning d-none mb-3" role="alert"></div>
 
-    <div class="d-flex justify-content-between mt-3">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="LifeBudget" class="form-label mb-1">Vida (comida, transporte...)</label>
+                <div class="input-group">
+                    <input asp-for="LifeBudget" class="form-control fw-bold" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <span class="input-group-text">€</span>
+                </div>
+                <span asp-validation-for="LifeBudget" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="WhimBudget" class="form-label">Caprichos (ocio, salidas...)</label>
+                <div class="input-group">
+                    <input asp-for="WhimBudget" class="form-control fw-bold" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <span class="input-group-text">€</span>
+                </div>
+                <span asp-validation-for="WhimBudget" class="text-danger small"></span>
+            </div>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between mt-4">
         <a asp-action="PiggyBanks" class="btn btn-outline-secondary">Atrás</a>
-        <button type="submit" class="btn btn-primary px-4">Continuar</button>
+        <button type="submit" class="btn btn-primary px-4" id="btnContinue" @(Model.HasDeficit ? "disabled" : "")>Continuar</button>
     </div>
 </form>
 
@@ -69,43 +110,101 @@
         document.addEventListener('DOMContentLoaded', function () {
             const lifeInput = document.getElementById('LifeBudget');
             const whimInput = document.getElementById('WhimBudget');
-            const btnSplit5050 = document.getElementById('btnSplit5050');
+            const btnContinue = document.getElementById('btnContinue');
+            const pocketForm = document.getElementById('pocketForm');
             const availableFreePocket = @((Model.AvailableFreePocket ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            const hasDeficit = @(Model.HasDeficit.ToString().ToLower());
+            const isZero = @(Model.IsZero.ToString().ToLower());
+            
+            const btnRec = document.getElementById('pills-recommended-tab');
+            const btnCustom = document.getElementById('pills-custom-tab');
+            const inputRepartoMode = document.getElementById('RepartoMode');
+            const validationMessage = document.getElementById('validationMessage');
 
-            function validateSum() {
+            // If there's a deficit or zero, we don't have inputs
+            if (hasDeficit || isZero || !lifeInput || !whimInput) return;
+
+            function updateValidationUI(isValid, message = "") {
+                if (isValid) {
+                    lifeInput.classList.remove('is-invalid');
+                    whimInput.classList.remove('is-invalid');
+                    lifeInput.classList.add('is-valid');
+                    whimInput.classList.add('is-valid');
+                    validationMessage.classList.add('d-none');
+                    btnContinue.disabled = false;
+                } else {
+                    lifeInput.classList.remove('is-valid');
+                    whimInput.classList.remove('is-valid');
+                    lifeInput.classList.add('is-invalid');
+                    whimInput.classList.add('is-invalid');
+                    if (message) {
+                        validationMessage.textContent = message;
+                        validationMessage.classList.remove('d-none');
+                    }
+                    btnContinue.disabled = true;
+                }
+            }
+
+            function apply5050() {
+                if (availableFreePocket <= 0) return;
+                const totalCents = Math.round(availableFreePocket * 100);
+                const halfCents = Math.ceil(totalCents / 2); // 499.99 => 250
+                const remainderCents = totalCents - halfCents; // 249.99
+                lifeInput.value = (halfCents / 100).toFixed(2);
+                whimInput.value = (remainderCents / 100).toFixed(2);
+                updateValidationUI(true);
+            }
+
+            function validateCustomSum() {
                 const life = parseFloat(lifeInput.value) || 0;
                 const whim = parseFloat(whimInput.value) || 0;
                 const total = life + whim;
 
-                if (Math.abs(total - availableFreePocket) > 0.01) {
-                    lifeInput.classList.add('is-invalid');
-                    whimInput.classList.add('is-invalid');
+                const diff = total - availableFreePocket;
+
+                if (Math.abs(diff) > 0.01) {
+                    if (diff < 0) {
+                        updateValidationUI(false, `Te faltan por asignar ${Math.abs(diff).toFixed(2).replace('.', ',')} €.`);
+                    } else {
+                        updateValidationUI(false, `Has asignado ${Math.abs(diff).toFixed(2).replace('.', ',')} € de más.`);
+                    }
                 } else {
-                    lifeInput.classList.remove('is-invalid');
-                    lifeInput.classList.add('is-valid');
-                    whimInput.classList.remove('is-invalid');
-                    whimInput.classList.add('is-valid');
+                    updateValidationUI(true);
                 }
             }
 
-            if (btnSplit5050) {
-                btnSplit5050.addEventListener('click', function () {
-                    const totalCents = Math.round(availableFreePocket * 100);
-                    const halfCents = Math.floor(totalCents / 2);
-                    const remainderCents = totalCents - halfCents;
-                    lifeInput.value = (remainderCents / 100).toFixed(2);
-                    whimInput.value = (halfCents / 100).toFixed(2);
-                    validateSum();
-                });
+            function setMode(mode) {
+                inputRepartoMode.value = mode;
+                if (mode === 'Recommended') {
+                    lifeInput.readOnly = true;
+                    whimInput.readOnly = true;
+                    lifeInput.classList.add('bg-light');
+                    whimInput.classList.add('bg-light');
+                    apply5050();
+                } else {
+                    lifeInput.readOnly = false;
+                    whimInput.readOnly = false;
+                    lifeInput.classList.remove('bg-light');
+                    whimInput.classList.remove('bg-light');
+                    validateCustomSum();
+                }
             }
 
-            lifeInput.addEventListener('input', validateSum);
-            whimInput.addEventListener('input', validateSum);
+            btnRec.addEventListener('shown.bs.tab', function () { setMode('Recommended'); });
+            btnCustom.addEventListener('shown.bs.tab', function () { setMode('Custom'); });
 
-            // Trigger validation on load if values exist
-            if (lifeInput.value || whimInput.value) {
-                validateSum();
-            }
+            lifeInput.addEventListener('input', validateCustomSum);
+            whimInput.addEventListener('input', validateCustomSum);
+
+            // Initialize mode on load
+            setMode(inputRepartoMode.value);
+            
+            // Prevent submission if invalid
+            pocketForm.addEventListener('submit', function (e) {
+                if (btnContinue.disabled) {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
 }

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace PocketFlow.ViewModels.Onboarding;
@@ -17,4 +18,13 @@ public class OnboardingPocketViewModel
     public decimal? FixedExpenses { get; set; }
     public decimal? TotalMonthlySavings { get; set; }
     public decimal? AvailableFreePocket { get; set; }
+
+    // Derived semantic properties for presentation
+    public bool HasDeficit => AvailableFreePocket < 0;
+    public decimal DeficitAmount => HasDeficit ? Math.Abs(AvailableFreePocket ?? 0m) : 0m;
+    public bool IsZero => AvailableFreePocket == 0;
+    public bool HasSurplus => AvailableFreePocket > 0;
+    
+    // UI state
+    public string RepartoMode { get; set; } = "Recommended";
 }

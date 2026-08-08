@@ -160,7 +160,8 @@ public class OnboardingController : Controller
             TotalMonthlySavings = totalSavings,
             AvailableFreePocket = availableFree,
             LifeBudget = state.LifeBudget == 0 && state.WhimBudget == 0 ? null : state.LifeBudget,
-            WhimBudget = state.WhimBudget == 0 && state.LifeBudget == 0 ? null : state.WhimBudget
+            WhimBudget = state.WhimBudget == 0 && state.LifeBudget == 0 ? null : state.WhimBudget,
+            RepartoMode = (state.LifeBudget == 0 && state.WhimBudget == 0) ? "Recommended" : "Custom"
         };
 
         return View(model);
@@ -179,6 +180,16 @@ public class OnboardingController : Controller
         if (availableFree < 0)
         {
             ModelState.AddModelError(string.Empty, "Tu planificación supera tus ingresos. Reduce tus gastos fijos o tus aportaciones a huchas antes de continuar.");
+            ModelState.Remove("LifeBudget");
+            ModelState.Remove("WhimBudget");
+        }
+        else if (availableFree == 0)
+        {
+            // For 0, life and whim must be 0, no matter what user sent
+            model.LifeBudget = 0;
+            model.WhimBudget = 0;
+            ModelState.Remove("LifeBudget");
+            ModelState.Remove("WhimBudget");
         }
         else if (!calcService.ValidatePocketBudgets(availableFree, model.LifeBudget ?? 0m, model.WhimBudget ?? 0m))
         {
