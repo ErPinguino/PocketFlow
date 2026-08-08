@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -96,15 +97,19 @@ public class WebPushNotificationService : IWebPushNotificationService
 
         foreach (var sub in subscriptions)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
                 var pushSubscription = new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth);
                 await _webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
+                sw.Stop();
+                _logger.LogInformation("Successfully sent push notification to {EndpointHost} in {ElapsedMilliseconds}ms.", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds);
                 successCount++;
             }
             catch (WebPushException exception)
             {
-                _logger.LogWarning(exception, "Failed to send push notification to endpoint {Endpoint}. StatusCode: {StatusCode}", sub.Endpoint, exception.StatusCode);
+                sw.Stop();
+                _logger.LogWarning(exception, "Failed to send push notification to {EndpointHost} in {ElapsedMilliseconds}ms. StatusCode: {StatusCode}", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds, exception.StatusCode);
                 
                 // If it's 404 (Not Found) or 410 (Gone), the subscription has expired or is no longer valid.
                 if (exception.StatusCode == System.Net.HttpStatusCode.Gone || exception.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -116,7 +121,8 @@ public class WebPushNotificationService : IWebPushNotificationService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error sending push notification to endpoint {Endpoint}", sub.Endpoint);
+                sw.Stop();
+                _logger.LogError(ex, "Unexpected error sending push notification to {EndpointHost} in {ElapsedMilliseconds}ms", new Uri(sub.Endpoint).Host, sw.ElapsedMilliseconds);
                 failureCount++;
             }
         }

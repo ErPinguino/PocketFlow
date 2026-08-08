@@ -82,17 +82,17 @@ self.addEventListener('fetch', event => {
 
 // WEB PUSH EVENTS
 self.addEventListener('push', event => {
-    console.log("[PocketFlow Push] Event received");
+    console.log("[PocketFlow Push] PUSH EVENT RECEIVED");
     let payload = {};
 
     try {
         payload = event.data ? event.data.json() : {};
-        console.log("[PocketFlow Push] Payload parsed JSON");
+        console.log("[PocketFlow Push] Parsed payload (JSON):", payload);
     } catch (error) {
         payload = {
             body: event.data ? event.data.text() : ""
         };
-        console.log("[PocketFlow Push] Payload parsed TEXT");
+        console.log("[PocketFlow Push] Parsed payload (TEXT):", payload);
     }
 
     const notification = payload.notification ?? payload;
@@ -130,9 +130,13 @@ self.addEventListener('push', event => {
     };
 
     console.log("[PocketFlow Push] Calling showNotification");
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-    );
+    try {
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+        );
+    } catch (error) {
+        console.error("[PocketFlow Push] ERROR", error);
+    }
 });
 
 self.addEventListener('notificationclick', event => {
