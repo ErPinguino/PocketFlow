@@ -86,6 +86,7 @@ public class SupabaseExternalAuthService : ISupabaseExternalAuthService
         var email = tokenResponse.User.Email;
         var name = tokenResponse.User.UserMetadata?.FullName ?? "Usuario";
         var emailVerified = IsEmailVerified(tokenResponse.User);
+        var avatarUrl = tokenResponse.User.UserMetadata?.AvatarUrl ?? tokenResponse.User.UserMetadata?.Picture;
 
         if (string.IsNullOrEmpty(email))
         {
@@ -98,7 +99,13 @@ public class SupabaseExternalAuthService : ISupabaseExternalAuthService
         var existingSupabaseUser = await _userRepository.GetBySupabaseUserIdAsync(supabaseUserId);
         if (existingSupabaseUser != null)
         {
-            return AuthResult.Success(existingSupabaseUser.Id, existingSupabaseUser.Name, existingSupabaseUser.Email, existingSupabaseUser.OnboardingCompleted);
+            if (existingSupabaseUser.AvatarUrl != avatarUrl && !string.IsNullOrEmpty(avatarUrl))
+            {
+                existingSupabaseUser.AvatarUrl = avatarUrl;
+                _userRepository.Update(existingSupabaseUser);
+                await _userRepository.SaveChangesAsync();
+            }
+            return AuthResult.Success(existingSupabaseUser.Id, existingSupabaseUser.Name, existingSupabaseUser.Email, existingSupabaseUser.OnboardingCompleted, existingSupabaseUser.AvatarUrl);
         }
 
         // 2. Buscar por Email para Account Linking
@@ -112,10 +119,14 @@ public class SupabaseExternalAuthService : ISupabaseExternalAuthService
             }
             
             existingEmailUser.SupabaseUserId = supabaseUserId;
+            if (string.IsNullOrEmpty(existingEmailUser.AvatarUrl) && !string.IsNullOrEmpty(avatarUrl))
+            {
+                existingEmailUser.AvatarUrl = avatarUrl;
+            }
             _userRepository.Update(existingEmailUser);
             await _userRepository.SaveChangesAsync();
             
-            return AuthResult.Success(existingEmailUser.Id, existingEmailUser.Name, existingEmailUser.Email, existingEmailUser.OnboardingCompleted);
+            return AuthResult.Success(existingEmailUser.Id, existingEmailUser.Name, existingEmailUser.Email, existingEmailUser.OnboardingCompleted, existingEmailUser.AvatarUrl);
         }
 
         // 3. Crear Nuevo Usuario (Sin PasswordHash, Onboarding falso por defecto)
@@ -125,13 +136,14 @@ public class SupabaseExternalAuthService : ISupabaseExternalAuthService
             Email = normalizedEmail,
             SupabaseUserId = supabaseUserId,
             PasswordHash = null,
+            AvatarUrl = avatarUrl,
             OnboardingCompleted = false
         };
 
         await _userRepository.AddAsync(newUser);
         await _userRepository.SaveChangesAsync();
 
-        return AuthResult.Success(newUser.Id, newUser.Name, newUser.Email, newUser.OnboardingCompleted);
+        return AuthResult.Success(newUser.Id, newUser.Name, newUser.Email, newUser.OnboardingCompleted, newUser.AvatarUrl);
     }
 
     private string GenerateCodeVerifier()
@@ -227,4 +239,10 @@ public class SupabaseUserMetadata
     
     [JsonPropertyName("email_verified")]
     public bool EmailVerified { get; set; }
+    
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
+    
+    [JsonPropertyName("picture")]
+    public string? Picture { get; set; }
 }

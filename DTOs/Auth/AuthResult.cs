@@ -8,10 +8,11 @@ public class AuthResult
     public Guid? UserId { get; set; }
     public string? Name { get; set; }
     public string? Email { get; set; }
+    public string? AvatarUrl { get; set; }
     public bool? OnboardingCompleted { get; set; }
 
-    public static AuthResult Success(Guid userId, string name, string email, bool onboardingCompleted) 
-        => new() { Succeeded = true, UserId = userId, Name = name, Email = email, OnboardingCompleted = onboardingCompleted };
+    public static AuthResult Success(Guid userId, string name, string email, bool onboardingCompleted, string? avatarUrl = null) 
+        => new() { Succeeded = true, UserId = userId, Name = name, Email = email, OnboardingCompleted = onboardingCompleted, AvatarUrl = avatarUrl };
         
     public static AuthResult Fail(string message) 
         => new() { Succeeded = false, ErrorMessage = message };

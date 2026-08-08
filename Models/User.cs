@@ -6,6 +6,7 @@ public class User : BaseEntity
     public string Email { get; set; } = string.Empty;
     public string? PasswordHash { get; set; }
     public string? SupabaseUserId { get; set; }
+    public string? AvatarUrl { get; set; }
     public bool OnboardingCompleted { get; set; }
     
     public Account? Account { get; set; }

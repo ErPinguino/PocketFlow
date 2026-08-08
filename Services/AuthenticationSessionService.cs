@@ -31,6 +31,11 @@ public class AuthenticationSessionService : IAuthenticationSessionService
             new Claim("onboarding_completed", result.OnboardingCompleted.ToString()!.ToLowerInvariant())
         };
 
+        if (!string.IsNullOrEmpty(result.AvatarUrl))
+        {
+            claims.Add(new Claim("avatar_url", result.AvatarUrl));
+        }
+
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var authProperties = new AuthenticationProperties { IsPersistent = rememberMe };
 

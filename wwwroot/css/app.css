@@ -143,3 +143,19 @@
     0% { transform: scale(0.5); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* Bottom Sheet Modal */
+.modal-dialog-bottom {
+    display: flex;
+    align-items: flex-end;
+    min-height: 100%;
+    margin: 0;
+}
+.modal-dialog-bottom .modal-content {
+    width: 100%;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+}

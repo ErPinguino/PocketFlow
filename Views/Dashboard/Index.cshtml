@@ -253,55 +253,90 @@
 
         function updateDashboardUI(summary, warnings) {
             // Estado
-            document.getElementById('monthlyStatusContainer').className = "mb-4 " + getStatusClass(summary.monthlyStatus);
-            document.getElementById('monthlyStatusIcon').className = "bi " + getStatusIcon(summary.monthlyStatus) + " me-2";
-            document.getElementById('monthlyStatusMessage').textContent = summary.statusMessage;
+            const monthlyStatusContainer = document.getElementById('monthlyStatusContainer');
+            if (monthlyStatusContainer) monthlyStatusContainer.className = "mb-4 " + getStatusClass(summary.monthlyStatus);
+            
+            const monthlyStatusIcon = document.getElementById('monthlyStatusIcon');
+            if (monthlyStatusIcon) monthlyStatusIcon.className = "bi " + getStatusIcon(summary.monthlyStatus) + " me-2";
+            
+            const monthlyStatusMessage = document.getElementById('monthlyStatusMessage');
+            if (monthlyStatusMessage) monthlyStatusMessage.textContent = summary.statusMessage;
 
             // Bolsillo Libre
             const fpRemaining = document.getElementById('freePocketRemaining');
-            fpRemaining.textContent = formatCurrency(summary.freePocketRemaining);
-            fpRemaining.className = "display-4 fw-bold mb-1 " + (summary.freePocketRemaining < 0 ? "text-danger" : "text-success");
+            if (fpRemaining) {
+                fpRemaining.textContent = formatCurrency(summary.freePocketRemaining);
+                fpRemaining.className = "display-3 fw-bold mb-3 money-value " + (summary.freePocketRemaining < 0 ? "text-danger" : "text-success");
+            }
             
-            document.getElementById('freePocketInitial').textContent = "Inicial: " + formatCurrency(summary.freePocketInitial);
-            document.getElementById('freePocketSpent').textContent = "Gastado: " + formatCurrency(summary.freePocketSpent);
+            const fpInitial = document.getElementById('freePocketInitial');
+            if (fpInitial) fpInitial.textContent = "de " + formatCurrency(summary.freePocketInitial);
+            
+            const fpSpent = document.getElementById('freePocketSpent');
+            if (fpSpent) fpSpent.textContent = "Gastado: " + formatCurrency(summary.freePocketSpent);
             
             const fpProgress = document.getElementById('freePocketProgress');
-            fpProgress.className = "progress-bar " + (summary.freePocketRemaining < 0 ? "bg-danger" : "bg-primary");
-            fpProgress.style.width = getProgress(summary.freePocketSpent, summary.freePocketInitial) + "%";
+            if (fpProgress) {
+                fpProgress.className = "progress-bar " + (summary.freePocketRemaining < 0 ? "bg-danger" : "bg-primary");
+                fpProgress.style.width = getProgress(summary.freePocketSpent, summary.freePocketInitial) + "%";
+            }
 
             // Semanal
             const wkBadge = document.getElementById('weeklyRemainingBadge');
-            wkBadge.textContent = "Restan " + formatCurrency(summary.weeklyRemaining);
-            wkBadge.className = "badge px-2 py-1 rounded-pill " + (summary.weeklyRemaining < 0 ? "bg-danger" : "bg-primary");
+            if (wkBadge) {
+                wkBadge.textContent = formatCurrency(summary.weeklyRemaining);
+                wkBadge.className = "fw-bold mb-2 money-value " + (summary.weeklyRemaining < 0 ? "text-danger" : "text-primary");
+            }
             
-            document.getElementById('weeklyInitial').textContent = "Inicial: " + formatCurrency(summary.weeklyBudget);
-            document.getElementById('weeklySpent').textContent = "Gastado: " + formatCurrency(summary.weeklySpent);
+            const wkInitial = document.getElementById('weeklyInitial');
+            if (wkInitial) wkInitial.textContent = "de " + formatCurrency(summary.weeklyBudget);
+            
+            const wkSpent = document.getElementById('weeklySpent');
+            if (wkSpent) wkSpent.textContent = "Gastado: " + formatCurrency(summary.weeklySpent);
             
             const wkProgress = document.getElementById('weeklyProgress');
-            wkProgress.className = "progress-bar " + (summary.weeklyRemaining < 0 ? "bg-danger" : "bg-primary");
-            wkProgress.style.width = getProgress(summary.weeklySpent, summary.weeklyBudget) + "%";
+            if (wkProgress) {
+                wkProgress.className = "progress-bar " + (summary.weeklyRemaining < 0 ? "bg-danger" : "bg-primary");
+                wkProgress.style.width = getProgress(summary.weeklySpent, summary.weeklyBudget) + "%";
+            }
 
             // Vida
             const lfRemaining = document.getElementById('lifeRemaining');
-            lfRemaining.textContent = formatCurrency(summary.lifeRemaining);
-            lfRemaining.className = "fw-bold " + (summary.lifeRemaining < 0 ? "text-danger" : "");
+            if (lfRemaining) {
+                lfRemaining.textContent = formatCurrency(summary.lifeRemaining);
+                lfRemaining.className = "fw-bold mb-1 money-value " + (summary.lifeRemaining < 0 ? "text-danger" : "text-dark");
+            }
             
-            document.getElementById('lifeInitial').textContent = "de " + formatCurrency(summary.lifeBudget);
+            const lfInitial = document.getElementById('lifeInitial');
+            if (lfInitial) lfInitial.textContent = "de " + formatCurrency(summary.lifeBudget);
+            
+            const lfSpent = document.getElementById('lifeSpent');
+            if (lfSpent) lfSpent.textContent = "Gastado: " + formatCurrency(summary.lifeSpent);
             
             const lfProgress = document.getElementById('lifeProgress');
-            lfProgress.className = "progress-bar " + (summary.lifeRemaining < 0 ? "bg-danger" : "bg-info");
-            lfProgress.style.width = getProgress(summary.lifeSpent, summary.lifeBudget) + "%";
+            if (lfProgress) {
+                lfProgress.className = "progress-bar " + (summary.lifeRemaining < 0 ? "bg-danger" : "bg-info");
+                lfProgress.style.width = getProgress(summary.lifeSpent, summary.lifeBudget) + "%";
+            }
 
             // Caprichos
             const whRemaining = document.getElementById('whimRemaining');
-            whRemaining.textContent = formatCurrency(summary.whimRemaining);
-            whRemaining.className = "fw-bold " + (summary.whimRemaining < 0 ? "text-danger" : "");
+            if (whRemaining) {
+                whRemaining.textContent = formatCurrency(summary.whimRemaining);
+                whRemaining.className = "fw-bold mb-1 money-value " + (summary.whimRemaining < 0 ? "text-danger" : "text-dark");
+            }
             
-            document.getElementById('whimInitial').textContent = "de " + formatCurrency(summary.whimBudget);
+            const whInitial = document.getElementById('whimInitial');
+            if (whInitial) whInitial.textContent = "de " + formatCurrency(summary.whimBudget);
+            
+            const whSpent = document.getElementById('whimSpent');
+            if (whSpent) whSpent.textContent = "Gastado: " + formatCurrency(summary.whimSpent);
             
             const whProgress = document.getElementById('whimProgress');
-            whProgress.className = "progress-bar " + (summary.whimRemaining < 0 ? "bg-danger" : "bg-warning");
-            whProgress.style.width = getProgress(summary.whimSpent, summary.whimBudget) + "%";
+            if (whProgress) {
+                whProgress.className = "progress-bar " + (summary.whimRemaining < 0 ? "bg-danger" : "bg-warning");
+                whProgress.style.width = getProgress(summary.whimSpent, summary.whimBudget) + "%";
+            }
             
             // Note: PiggyBanks aren't updated by expenses right now, so we skip them.
         }
