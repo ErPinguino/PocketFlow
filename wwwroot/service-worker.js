@@ -129,14 +129,25 @@ self.addEventListener('push', event => {
         vibrate: [200, 100, 200]
     };
 
-    console.log("[PocketFlow Push] Calling showNotification");
-    try {
-        event.waitUntil(
-            self.registration.showNotification(title, options)
-        );
-    } catch (error) {
-        console.error("[PocketFlow Push] ERROR", error);
-    }
+    console.log("[PocketFlow Push] Calling showNotification", title, options);
+    
+    event.waitUntil(
+        (async () => {
+            try {
+                await self.registration.showNotification(title, options);
+                console.log("[PocketFlow Push] showNotification RESOLVED");
+            } catch (error) {
+                console.error(
+                    "[PocketFlow Push] showNotification REJECTED",
+                    error,
+                    error?.name,
+                    error?.message,
+                    error?.stack
+                );
+                throw error;
+            }
+        })()
+    );
 });
 
 self.addEventListener('notificationclick', event => {
