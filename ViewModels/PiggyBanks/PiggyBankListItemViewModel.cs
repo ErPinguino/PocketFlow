@@ -11,6 +11,8 @@ public class PiggyBankListItemViewModel
     public decimal? TargetAmount { get; set; }
     public decimal? RemainingAmount { get; set; }
     public decimal MonthlyContribution { get; set; }
+    public decimal PendingPlanned { get; set; }
+    public decimal AvailablePocketAmount { get; set; }
     public int? ProgressPercentage { get; set; }
     public bool IsActive { get; set; }
     public bool IsCompleted { get; set; }

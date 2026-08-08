@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<MonthlyPlan> MonthlyPlans { get; set; } = null!;
     public DbSet<Expense> Expenses { get; set; } = null!;
     public DbSet<PiggyBank> PiggyBanks { get; set; } = null!;
+    public DbSet<PiggyBankContribution> PiggyBankContributions { get; set; } = null!;
     public DbSet<MonthlyRollover> MonthlyRollovers { get; set; } = null!;
     public DbSet<PushSubscription> PushSubscriptions { get; set; } = null!;
     public DbSet<InstallmentPlan> InstallmentPlans { get; set; } = null!;

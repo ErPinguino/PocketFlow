@@ -91,11 +91,29 @@
                                             <span>Próx. cuota: <strong class="text-dark">@inst.NextDueDate.Value.ToString("dd MMM", culture)</strong></span>
                                         }
                                     </div>
-                                    <form asp-controller="Installments" asp-action="Liquidate" asp-route-id="@inst.Id" method="post">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold" onclick="return confirm('¿Seguro que deseas liquidar el importe pendiente de @inst.PendingAmount.ToString("C", culture)?');">
-                                            Liquidar
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-2">
+                                        @if (inst.PaidInstallmentsCount > 0)
+                                        {
+                                            <form asp-controller="Installments" asp-action="Cancel" asp-route-id="@inst.Id" method="post">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill fw-bold" onclick="return confirm('¿Seguro que deseas cancelar las cuotas futuras de este plan a plazos? El historial de cuotas pagadas se mantendrá intacto.');">
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Installments" asp-action="Delete" asp-route-id="@inst.Id" method="post">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" onclick="return confirm('¿Seguro que deseas eliminar este plan a plazos? Esta acción eliminará el plan por completo.');">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        }
+                                        <form asp-controller="Installments" asp-action="Liquidate" asp-route-id="@inst.Id" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold" onclick="return confirm('¿Seguro que deseas liquidar el importe pendiente de @inst.PendingAmount.ToString("C", culture)?');">
+                                                Liquidar
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -4,5 +4,6 @@ public enum InstallmentStatus
 {
     Active,
     Completed,
-    Liquidated
+    Liquidated,
+    Cancelled
 }

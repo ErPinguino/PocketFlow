@@ -65,6 +65,7 @@
                                             <i class="bi bi-three-dots-vertical fs-5"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                            <li><a class="dropdown-item btn-contribute-pb" href="#" data-id="@pb.Id" data-name="@pb.Name" data-pending="@pb.PendingPlanned" data-available="@pb.AvailablePocketAmount" data-monthly="@pb.MonthlyContribution"><i class="bi bi-plus-circle me-2"></i>Aportar</a></li>
                                             <li><a class="dropdown-item btn-edit-pb" href="#" data-id="@pb.Id"><i class="bi bi-pencil me-2"></i>Editar</a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-warning btn-archive-pb" href="#" data-id="@pb.Id" data-name="@pb.Name"><i class="bi bi-archive me-2"></i>Archivar</a></li>
@@ -286,6 +287,72 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Contribute -->
+<div class="modal fade" id="contributePiggyBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered align-items-start m-0 m-md-auto" style="max-width: 500px;">
+        <div class="modal-content border-0 shadow-lg rounded-top-4 rounded-md-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="contributeModalTitle">Aportar a Hucha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-3 pb-4">
+                <div id="contributePbAlert" class="alert alert-danger d-none" role="alert"></div>
+                
+                <!-- PLANNED SECTION -->
+                <div id="plannedSection" class="mb-4">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-check text-primary me-2"></i>Aportación Planificada</h6>
+                    
+                    <div id="plannedPendingContainer" class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold small">Pendiente este mes:</span>
+                            <span class="fw-bold fs-5 text-dark" id="displayPendingAmount">0,00 €</span>
+                        </div>
+                    </div>
+                    
+                    <div id="plannedCompletedContainer" class="alert alert-success d-none mb-3 border-0 py-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> <span class="small">Ya has completado tu aportación planificada de este mes.</span>
+                    </div>
+
+                    <form id="contributePlannedForm" asp-controller="PiggyBanks" asp-action="ContributePlanned" method="post">
+                        <input type="hidden" class="contributePbId" name="Id" value="" />
+                        <div class="input-group mb-3">
+                            <span class="input-group-text bg-white border-end-0 fw-bold text-muted">€</span>
+                            <input type="number" min="0.01" step="0.01" class="form-control form-control-lg bg-white border-start-0 ps-0 fw-bold" id="contributePlannedAmount" name="amount" required>
+                            <button type="submit" id="btnConfirmPlanned" class="btn btn-primary px-4 fw-bold">
+                                <span class="btn-text">Aportar</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <hr class="text-muted opacity-25 my-4" id="contributeSeparator" />
+
+                <!-- EXTRA SECTION -->
+                <div id="extraSection">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-piggy-bank text-success me-2"></i>Aportación Extra</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted fw-bold small">Bolsillo Libre disponible:</span>
+                        <span class="fw-bold text-dark" id="displayAvailableAmount">0,00 €</span>
+                    </div>
+                    
+                    <form id="contributeExtraForm" asp-controller="PiggyBanks" asp-action="ContributeExtra" method="post">
+                        <input type="hidden" class="contributePbId" name="Id" value="" />
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 fw-bold text-muted">€</span>
+                            <input type="number" min="0.01" step="0.01" class="form-control form-control-lg bg-white border-start-0 ps-0 fw-bold" id="contributeExtraAmount" name="amount" required>
+                            <button type="submit" id="btnConfirmExtra" class="btn btn-success px-4 fw-bold">
+                                <span class="btn-text">Aportar</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

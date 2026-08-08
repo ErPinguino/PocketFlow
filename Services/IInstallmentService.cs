@@ -11,4 +11,6 @@ public interface IInstallmentService
     Task<List<InstallmentPlanListItemViewModel>> GetActivePlansAsync(Guid accountId);
     Task<ResultViewModel> CreatePlanAsync(Guid accountId, CreateInstallmentPlanViewModel model);
     Task<ResultViewModel> LiquidatePlanAsync(Guid accountId, Guid planId);
+    Task<ResultViewModel> CancelPlanAsync(Guid accountId, Guid planId);
+    Task<ResultViewModel> DeletePlanAsync(Guid accountId, Guid planId);
 }

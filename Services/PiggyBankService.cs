@@ -7,6 +7,8 @@ using PocketFlow.Models;
 using PocketFlow.Repositories;
 using PocketFlow.ViewModels.PiggyBanks;
 using PocketFlow.ViewModels.Shared;
+using PocketFlow.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace PocketFlow.Services;
 
@@ -16,17 +18,23 @@ public class PiggyBankService : IPiggyBankService
     private readonly IAccountContextService _accountContextService;
     private readonly IAppClock _clock;
     private readonly ILogger<PiggyBankService> _logger;
+    private readonly ApplicationDbContext _context;
+    private readonly IMonthlyPlanRepository _monthlyPlanRepository;
 
     public PiggyBankService(
         IPiggyBankRepository piggyBankRepository,
         IAccountContextService accountContextService,
         IAppClock clock,
-        ILogger<PiggyBankService> logger)
+        ILogger<PiggyBankService> logger,
+        ApplicationDbContext context,
+        IMonthlyPlanRepository monthlyPlanRepository)
     {
         _piggyBankRepository = piggyBankRepository;
         _accountContextService = accountContextService;
         _clock = clock;
         _logger = logger;
+        _context = context;
+        _monthlyPlanRepository = monthlyPlanRepository;
     }
 
     public async Task<PiggyBanksViewModel> GetAllAsync()
@@ -35,12 +43,30 @@ public class PiggyBankService : IPiggyBankService
         if (account == null) return new PiggyBanksViewModel();
 
         var allPiggyBanks = await _piggyBankRepository.GetByAccountIdAsync(account.Id);
+        var activeMonthlyPlan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
 
         var viewModel = new PiggyBanksViewModel();
+        
+        List<PiggyBankContribution> contributions = new();
+        if (activeMonthlyPlan != null)
+        {
+            contributions = await _context.PiggyBankContributions
+                .Where(c => c.MonthlyPlanId == activeMonthlyPlan.Id)
+                .ToListAsync();
+        }
 
         foreach (var pb in allPiggyBanks)
         {
             var itemVM = MapToListItem(pb);
+            if (activeMonthlyPlan != null)
+            {
+                var appliedPlanned = contributions
+                    .Where(c => c.PiggyBankId == pb.Id && c.Type == ContributionType.Planned)
+                    .Sum(c => c.Amount);
+                itemVM.PendingPlanned = Math.Max(0, pb.MonthlyContribution - appliedPlanned);
+                itemVM.AvailablePocketAmount = activeMonthlyPlan.FreePocketAmount;
+            }
+            
             if (pb.IsActive)
             {
                 viewModel.ActivePiggyBanks.Add(itemVM);
@@ -178,6 +204,102 @@ public class PiggyBankService : IPiggyBankService
         {
             _logger.LogError(ex, "Error reactivating PiggyBank {Id}", id);
             return ResultViewModel.Failure("Ocurrió un error al reactivar la hucha.");
+        }
+    }
+
+    public async Task<ResultViewModel> ContributePlannedAsync(Guid id, decimal amount)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var account = await _accountContextService.GetCurrentAccountAsync();
+            if (account == null) return ResultViewModel.Failure("No se encontró la cuenta.");
+
+            var piggyBank = await _piggyBankRepository.GetByIdAndAccountIdAsync(id, account.Id);
+            if (piggyBank == null) return ResultViewModel.Failure("Hucha no encontrada.");
+
+            var activeMonthlyPlan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
+            if (activeMonthlyPlan == null) return ResultViewModel.Failure("No hay plan mensual activo.");
+
+            var appliedPlanned = await _context.PiggyBankContributions
+                .Where(c => c.PiggyBankId == id && c.MonthlyPlanId == activeMonthlyPlan.Id && c.Type == ContributionType.Planned)
+                .SumAsync(c => c.Amount);
+            
+            var pendingPlanned = Math.Max(0, piggyBank.MonthlyContribution - appliedPlanned);
+            if (amount <= 0 || amount > pendingPlanned)
+                return ResultViewModel.Failure("El importe supera el ahorro planificado pendiente.");
+
+            piggyBank.CurrentAmount += amount;
+            piggyBank.UpdatedAt = _clock.UtcNow;
+
+            _piggyBankRepository.Update(piggyBank);
+
+            var contribution = new PiggyBankContribution
+            {
+                PiggyBankId = piggyBank.Id,
+                MonthlyPlanId = activeMonthlyPlan.Id,
+                Amount = amount,
+                Type = ContributionType.Planned,
+                CreatedAt = _clock.UtcNow
+            };
+            await _context.PiggyBankContributions.AddAsync(contribution);
+            
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ResultViewModel.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing planned contribution to PiggyBank {Id}", id);
+            return ResultViewModel.Failure("Ocurrió un error al realizar la aportación planificada.");
+        }
+    }
+
+    public async Task<ResultViewModel> ContributeExtraAsync(Guid id, decimal amount)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var account = await _accountContextService.GetCurrentAccountAsync();
+            if (account == null) return ResultViewModel.Failure("No se encontró la cuenta.");
+
+            var piggyBank = await _piggyBankRepository.GetByIdAndAccountIdAsync(id, account.Id);
+            if (piggyBank == null) return ResultViewModel.Failure("Hucha no encontrada.");
+
+            var activeMonthlyPlan = await _monthlyPlanRepository.GetActivePlanByAccountIdAsync(account.Id);
+            if (activeMonthlyPlan == null) return ResultViewModel.Failure("No hay plan mensual activo.");
+
+            if (amount <= 0 || amount > activeMonthlyPlan.FreePocketAmount)
+                return ResultViewModel.Failure("El importe supera el saldo disponible en el bolsillo libre.");
+
+            piggyBank.CurrentAmount += amount;
+            piggyBank.UpdatedAt = _clock.UtcNow;
+
+            _piggyBankRepository.Update(piggyBank);
+
+            activeMonthlyPlan.FreePocketAmount -= amount;
+            _context.MonthlyPlans.Update(activeMonthlyPlan);
+            
+            var contribution = new PiggyBankContribution
+            {
+                PiggyBankId = piggyBank.Id,
+                MonthlyPlanId = activeMonthlyPlan.Id,
+                Amount = amount,
+                Type = ContributionType.Extra,
+                CreatedAt = _clock.UtcNow
+            };
+            await _context.PiggyBankContributions.AddAsync(contribution);
+            
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ResultViewModel.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing extra contribution to PiggyBank {Id}", id);
+            return ResultViewModel.Failure("Ocurrió un error al realizar la aportación extra.");
         }
     }
 

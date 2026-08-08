@@ -102,4 +102,42 @@ public class PiggyBanksController : Controller
 
         return BadRequest(new { error = result.ErrorMessage });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ContributePlanned(Guid id, decimal amount)
+    {
+        if (amount <= 0)
+        {
+            return BadRequest(new { error = "El importe debe ser mayor que 0." });
+        }
+
+        var result = await _piggyBankService.ContributePlannedAsync(id, amount);
+
+        if (result.Succeeded)
+        {
+            return Ok();
+        }
+
+        return BadRequest(new { error = result.ErrorMessage });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ContributeExtra(Guid id, decimal amount)
+    {
+        if (amount <= 0)
+        {
+            return BadRequest(new { error = "El importe debe ser mayor que 0." });
+        }
+
+        var result = await _piggyBankService.ContributeExtraAsync(id, amount);
+
+        if (result.Succeeded)
+        {
+            return Ok();
+        }
+
+        return BadRequest(new { error = result.ErrorMessage });
+    }
 }

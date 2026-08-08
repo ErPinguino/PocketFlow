@@ -225,6 +225,98 @@ public class InstallmentService : IInstallmentService
         }
     }
 
+    public async Task<ResultViewModel> CancelPlanAsync(Guid accountId, Guid planId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var plan = await _context.InstallmentPlans
+                .Include(p => p.Payments)
+                .FirstOrDefaultAsync(p => p.Id == planId && p.AccountId == accountId);
+
+            if (plan == null) return ResultViewModel.Failure("Plan no encontrado.");
+            if (plan.Status != InstallmentStatus.Active) return ResultViewModel.Failure("Solo se pueden cancelar planes activos.");
+
+            // Remove future payments that don't have an associated Expense yet
+            var futurePayments = plan.Payments.Where(p => p.ExpenseId == null).ToList();
+            if (futurePayments.Any())
+            {
+                _context.InstallmentPayments.RemoveRange(futurePayments);
+            }
+
+            plan.Status = InstallmentStatus.Cancelled;
+            plan.UpdatedAt = _clock.UtcNow;
+            _context.InstallmentPlans.Update(plan);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ResultViewModel.Success();
+        }
+        catch (Exception ex)
+        {
+            try 
+            { 
+                await transaction.RollbackAsync(); 
+            } 
+            catch (Exception rollbackEx) 
+            { 
+                _logger.LogWarning(rollbackEx, "Failed to rollback transaction after an error during CancelPlanAsync.");
+            }
+
+            _logger.LogError(ex, "Error cancelling installment plan");
+            return ResultViewModel.Failure("Error al cancelar el pago a plazos.");
+        }
+    }
+
+    public async Task<ResultViewModel> DeletePlanAsync(Guid accountId, Guid planId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var plan = await _context.InstallmentPlans
+                .Include(p => p.Payments)
+                .ThenInclude(p => p.Expense)
+                .FirstOrDefaultAsync(p => p.Id == planId && p.AccountId == accountId);
+
+            if (plan == null) return ResultViewModel.Failure("Plan no encontrado.");
+
+            // Si el plan ya tiene pagos materializados, no se debe borrar físicamente para no perder histórico
+            if (plan.Payments.Any(p => p.ExpenseId != null))
+            {
+                return ResultViewModel.Failure("El plan ya tiene cuotas históricas y debe ser Cancelado en lugar de eliminado físicamente.");
+            }
+
+            // Si no tiene gastos (ej. solo cuotas futuras pendientes sin materializar)
+            if (plan.Payments.Any())
+            {
+                _context.InstallmentPayments.RemoveRange(plan.Payments);
+            }
+
+            // Eliminar el plan
+            _context.InstallmentPlans.Remove(plan);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ResultViewModel.Success();
+        }
+        catch (Exception ex)
+        {
+            try 
+            { 
+                await transaction.RollbackAsync(); 
+            } 
+            catch (Exception rollbackEx) 
+            { 
+                _logger.LogWarning(rollbackEx, "Failed to rollback transaction after an error during DeletePlanAsync.");
+            }
+
+            _logger.LogError(ex, "Error deleting installment plan");
+            return ResultViewModel.Failure("Error al eliminar el pago a plazos.");
+        }
+    }
+
     private DateTime GetTheoreticalDueDate(DateTime startDate, int billingDay, int installmentNumber)
     {
         var targetMonthDate = startDate.AddMonths(installmentNumber - 1);

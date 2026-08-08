@@ -362,6 +362,22 @@
             });
         }
     </script>
+    @if (TempData["PlaySuccessSound"] != null)
+    {
+        <script>
+            window.addEventListener('load', () => {
+                if (window.PocketFlowSound) window.PocketFlowSound.success();
+            });
+        </script>
+    }
+    @if (TempData["PlayDeleteSound"] != null)
+    {
+        <script>
+            window.addEventListener('load', () => {
+                if (window.PocketFlowSound) window.PocketFlowSound.delete();
+            });
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
