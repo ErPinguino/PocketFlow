@@ -170,28 +170,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnTestPush.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
                 btnTestPush.disabled = true;
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
                 try {
-                    // Obtener token anti-forgery global si existe, o del meta tag
                     const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
                     
-                    const response = await fetch('/Notifications/SendTest', {
+                    const response = await fetch('/Notifications/SendTestCurrentDevice', {
                         method: 'POST',
                         headers: {
+                            'Content-Type': 'application/json',
                             'RequestVerificationToken': antiForgeryToken
-                        }
+                        },
+                        body: JSON.stringify({ endpoint: subscription.endpoint }),
+                        signal: controller.signal
                     });
                     
                     const data = await response.json();
                     if (data.result === 'Success') {
                         if (typeof Toasts !== 'undefined') Toasts.success("Notificación de prueba enviada.");
                     } else if (data.result === 'NoSubscriptions') {
-                        if (typeof Toasts !== 'undefined') Toasts.warning("No hay suscripciones activas.");
+                        if (typeof Toasts !== 'undefined') Toasts.warning("El dispositivo no está registrado.");
                     } else {
                         if (typeof Toasts !== 'undefined') Toasts.error("Error al enviar la notificación.");
                     }
                 } catch (e) {
-                    if (typeof Toasts !== 'undefined') Toasts.error("Fallo de red al intentar enviar prueba.");
+                    if (e.name === 'AbortError') {
+                        if (typeof Toasts !== 'undefined') Toasts.error("Tiempo de espera agotado al enviar prueba.");
+                    } else {
+                        if (typeof Toasts !== 'undefined') Toasts.error("Fallo de red al intentar enviar prueba.");
+                    }
                 } finally {
+                    clearTimeout(timeoutId);
                     btnTestPush.innerHTML = originalHtml;
                     btnTestPush.disabled = false;
                 }

@@ -25,7 +25,7 @@ public class WebPushNotificationService : IWebPushNotificationService
         _webPushClient = new WebPushClient();
     }
 
-    public async Task<WebPushResult> SendNotificationAsync(Guid accountId, string title, string body, string url = "/", string tag = "default")
+    public async Task<WebPushResult> SendNotificationAsync(Guid accountId, string title, string body, string url = "/", string tag = "default", string type = "generic")
     {
         var subscriptions = await _context.PushSubscriptions
             .Where(s => s.AccountId == accountId && s.IsActive)
@@ -38,13 +38,35 @@ public class WebPushNotificationService : IWebPushNotificationService
             title,
             body,
             url,
-            tag
+            tag,
+            type,
+            icon = "/icons/icon-192.png"
         });
 
         return await SendToSubscriptionsAsync(subscriptions, payload);
     }
 
-    public async Task<WebPushResult> BroadcastNotificationAsync(string title, string body, string url = "/", string tag = "default")
+    public async Task<WebPushResult> SendNotificationToEndpointAsync(Guid accountId, string endpoint, string title, string body, string url = "/", string tag = "default", string type = "generic")
+    {
+        var subscription = await _context.PushSubscriptions
+            .FirstOrDefaultAsync(s => s.AccountId == accountId && s.Endpoint == endpoint && s.IsActive);
+
+        if (subscription == null) return WebPushResult.NoSubscriptions;
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            title,
+            body,
+            url,
+            tag,
+            type,
+            icon = "/icons/icon-192.png"
+        });
+
+        return await SendToSubscriptionsAsync(new List<PocketFlow.Models.PushSubscription> { subscription }, payload);
+    }
+
+    public async Task<WebPushResult> BroadcastNotificationAsync(string title, string body, string url = "/", string tag = "default", string type = "generic")
     {
         var subscriptions = await _context.PushSubscriptions
             .Where(s => s.IsActive)
@@ -57,7 +79,9 @@ public class WebPushNotificationService : IWebPushNotificationService
             title,
             body,
             url,
-            tag
+            tag,
+            type,
+            icon = "/icons/icon-192.png"
         });
 
         return await SendToSubscriptionsAsync(subscriptions, payload);
@@ -85,6 +109,7 @@ public class WebPushNotificationService : IWebPushNotificationService
                 // If it's 404 (Not Found) or 410 (Gone), the subscription has expired or is no longer valid.
                 if (exception.StatusCode == System.Net.HttpStatusCode.Gone || exception.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
+                    _logger.LogInformation("Subscription for endpoint {Endpoint} is no longer valid. Marking for removal.", sub.Endpoint);
                     subscriptionsToRemove.Add(sub);
                 }
                 failureCount++;

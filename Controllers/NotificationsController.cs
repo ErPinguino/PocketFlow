@@ -105,21 +105,33 @@ public class NotificationsController : Controller
     }
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SendTest([FromServices] IWebPushNotificationService pushService)
+    public async Task<IActionResult> SendTestCurrentDevice([FromBody] PushTestViewModel model, [FromServices] IWebPushNotificationService pushService)
     {
+        if (model == null || string.IsNullOrWhiteSpace(model.Endpoint))
+        {
+            return BadRequest(new { success = false, message = "Invalid test payload." });
+        }
+
         var account = await _accountContext.GetCurrentAccountAsync();
         if (account == null) return Unauthorized();
 
-        var result = await pushService.SendNotificationAsync(
+        var result = await pushService.SendNotificationToEndpointAsync(
             accountId: account.Id,
+            endpoint: model.Endpoint,
             title: "PocketFlow",
             body: "Las notificaciones funcionan correctamente.",
             url: "/Dashboard",
-            tag: "pocketflow-test"
+            tag: "pocketflow-test",
+            type: "test"
         );
 
         return Json(new { result = result.ToString() });
     }
+}
+
+public class PushTestViewModel
+{
+    public string Endpoint { get; set; } = string.Empty;
 }
 
 public class PushSubscriptionViewModel

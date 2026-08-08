@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pocketflow-static-v2';
+const CACHE_NAME = 'pocketflow-static-v3';
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_TO_CACHE = [
@@ -82,34 +82,72 @@ self.addEventListener('fetch', event => {
 
 // WEB PUSH EVENTS
 self.addEventListener('push', event => {
-    if (!event.data) return;
+    console.log("[PocketFlow Push] Event received");
+    let payload = {};
 
     try {
-        const payload = event.data.json();
-        
-        const options = {
-            body: payload.body || 'Tienes una nueva notificación.',
-            icon: '/icons/icon-192.png',
-            badge: '/icons/icon-192.png',
-            tag: payload.tag || 'default',
-            data: {
-                url: payload.url || '/Dashboard'
-            },
-            vibrate: [200, 100, 200]
+        payload = event.data ? event.data.json() : {};
+        console.log("[PocketFlow Push] Payload parsed JSON");
+    } catch (error) {
+        payload = {
+            body: event.data ? event.data.text() : ""
         };
-
-        event.waitUntil(
-            self.registration.showNotification(payload.title || 'PocketFlow', options)
-        );
-    } catch (e) {
-        console.error("Error parsing push payload", e);
+        console.log("[PocketFlow Push] Payload parsed TEXT");
     }
+
+    const notification = payload.notification ?? payload;
+
+    const title =
+        notification.title ??
+        payload.title ??
+        "PocketFlow";
+
+    const options = {
+        body:
+            notification.body ??
+            payload.body ??
+            "Tienes una nueva notificación.",
+        icon:
+            notification.icon ??
+            payload.icon ??
+            "/icons/icon-192.png",
+        badge: '/icons/icon-192.png',
+        tag:
+            notification.tag ??
+            payload.tag ??
+            "pocketflow",
+        data: {
+            url:
+                notification.url ??
+                payload.url ??
+                "/Dashboard",
+            type:
+                notification.type ??
+                payload.type ??
+                "generic"
+        },
+        vibrate: [200, 100, 200]
+    };
+
+    console.log("[PocketFlow Push] Calling showNotification");
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
 });
 
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     
     const targetUrl = event.notification.data?.url || '/Dashboard';
+
+    // Prevent external URLs from being opened by notification payload
+    if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+        const urlObj = new URL(targetUrl, self.location.origin);
+        if (urlObj.origin !== self.location.origin) {
+            console.warn('Bloqueada URL externa desde notificación push:', targetUrl);
+            return;
+        }
+    }
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
