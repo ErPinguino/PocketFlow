@@ -93,7 +93,7 @@ self.addEventListener('push', event => {
             badge: '/icons/icon-192.png',
             tag: payload.tag || 'default',
             data: {
-                url: payload.url || '/'
+                url: payload.url || '/Dashboard'
             },
             vibrate: [200, 100, 200]
         };
@@ -109,19 +109,16 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     
-    const targetUrl = event.notification.data.url;
+    const targetUrl = event.notification.data?.url || '/Dashboard';
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-            // Check if there is already a window/tab open with the target URL
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
-                // If so, just focus it.
                 if (client.url.includes(targetUrl) && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // If not, then open the target URL in a new window/tab.
             if (clients.openWindow) {
                 return clients.openWindow(targetUrl);
             }

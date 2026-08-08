@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Notification.permission === 'granted') {
             pushStatusText.textContent = "Notificaciones activadas y configuradas.";
             pushStatusText.className = "text-success small mb-0 fw-bold";
+            checkAndShowTestButton();
         } else if (Notification.permission === 'denied') {
             pushStatusText.textContent = "Notificaciones bloqueadas por el navegador.";
             pushStatusText.className = "text-danger small mb-0 fw-bold";
@@ -138,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         pushStatusText.className = "text-success small mb-0 fw-bold";
                         btnEnablePush.classList.add('d-none');
                         if (typeof Toasts !== 'undefined') Toasts.success("Notificaciones activadas correctamente.");
+                        checkAndShowTestButton();
                     } catch (e) {
                         btnEnablePush.innerHTML = 'Reintentar';
                         btnEnablePush.disabled = false;
@@ -149,6 +151,61 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnEnablePush.classList.add('d-none');
                 }
             });
+        }
+    }
+
+    async function checkAndShowTestButton() {
+        const testPushSection = document.getElementById('testPushSection');
+        const btnTestPush = document.getElementById('btnTestPush');
+        if (!testPushSection || !btnTestPush) return;
+
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            testPushSection.classList.remove('d-none');
+            
+            btnTestPush.addEventListener('click', async () => {
+                const originalHtml = btnTestPush.innerHTML;
+                btnTestPush.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
+                btnTestPush.disabled = true;
+
+                try {
+                    // Obtener token anti-forgery global si existe, o del meta tag
+                    const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    
+                    const response = await fetch('/Notifications/SendTest', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': antiForgeryToken
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.result === 'Success') {
+                        if (typeof Toasts !== 'undefined') Toasts.success("Notificación de prueba enviada.");
+                    } else if (data.result === 'NoSubscriptions') {
+                        if (typeof Toasts !== 'undefined') Toasts.warning("No hay suscripciones activas.");
+                    } else {
+                        if (typeof Toasts !== 'undefined') Toasts.error("Error al enviar la notificación.");
+                    }
+                } catch (e) {
+                    if (typeof Toasts !== 'undefined') Toasts.error("Fallo de red al intentar enviar prueba.");
+                } finally {
+                    btnTestPush.innerHTML = originalHtml;
+                    btnTestPush.disabled = false;
+                }
+            });
+        } else {
+            const pushStatusText = document.getElementById('pushStatusText');
+            if (pushStatusText) {
+                pushStatusText.textContent = "Este dispositivo todavía no está suscrito a notificaciones.";
+                pushStatusText.className = "text-warning small mb-0 fw-bold";
+                const btnEnablePush = document.getElementById('btnEnablePush');
+                if (btnEnablePush) {
+                    btnEnablePush.classList.remove('d-none');
+                }
+            }
         }
     }
 

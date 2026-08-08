@@ -25,13 +25,13 @@ public class WebPushNotificationService : IWebPushNotificationService
         _webPushClient = new WebPushClient();
     }
 
-    public async Task SendNotificationAsync(Guid accountId, string title, string body, string url = "/", string tag = "default")
+    public async Task<WebPushResult> SendNotificationAsync(Guid accountId, string title, string body, string url = "/", string tag = "default")
     {
         var subscriptions = await _context.PushSubscriptions
             .Where(s => s.AccountId == accountId && s.IsActive)
             .ToListAsync();
 
-        if (!subscriptions.Any()) return;
+        if (!subscriptions.Any()) return WebPushResult.NoSubscriptions;
 
         var payload = JsonSerializer.Serialize(new
         {
@@ -41,16 +41,16 @@ public class WebPushNotificationService : IWebPushNotificationService
             tag
         });
 
-        await SendToSubscriptionsAsync(subscriptions, payload);
+        return await SendToSubscriptionsAsync(subscriptions, payload);
     }
 
-    public async Task BroadcastNotificationAsync(string title, string body, string url = "/", string tag = "default")
+    public async Task<WebPushResult> BroadcastNotificationAsync(string title, string body, string url = "/", string tag = "default")
     {
         var subscriptions = await _context.PushSubscriptions
             .Where(s => s.IsActive)
             .ToListAsync();
 
-        if (!subscriptions.Any()) return;
+        if (!subscriptions.Any()) return WebPushResult.NoSubscriptions;
 
         var payload = JsonSerializer.Serialize(new
         {
@@ -60,13 +60,15 @@ public class WebPushNotificationService : IWebPushNotificationService
             tag
         });
 
-        await SendToSubscriptionsAsync(subscriptions, payload);
+        return await SendToSubscriptionsAsync(subscriptions, payload);
     }
 
-    private async Task SendToSubscriptionsAsync(List<PocketFlow.Models.PushSubscription> subscriptions, string payload)
+    private async Task<WebPushResult> SendToSubscriptionsAsync(List<PocketFlow.Models.PushSubscription> subscriptions, string payload)
     {
         var vapidDetails = new VapidDetails(_options.Subject, _options.PublicKey, _options.PrivateKey);
         var subscriptionsToRemove = new List<PocketFlow.Models.PushSubscription>();
+        int successCount = 0;
+        int failureCount = 0;
 
         foreach (var sub in subscriptions)
         {
@@ -74,6 +76,7 @@ public class WebPushNotificationService : IWebPushNotificationService
             {
                 var pushSubscription = new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth);
                 await _webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
+                successCount++;
             }
             catch (WebPushException exception)
             {
@@ -84,10 +87,12 @@ public class WebPushNotificationService : IWebPushNotificationService
                 {
                     subscriptionsToRemove.Add(sub);
                 }
+                failureCount++;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error sending push notification to endpoint {Endpoint}", sub.Endpoint);
+                failureCount++;
             }
         }
 
@@ -96,5 +101,18 @@ public class WebPushNotificationService : IWebPushNotificationService
             _context.PushSubscriptions.RemoveRange(subscriptionsToRemove);
             await _context.SaveChangesAsync();
         }
+
+        if (successCount > 0)
+        {
+            _logger.LogInformation("Push notification sent to {Count} active subscriptions.", successCount);
+            return WebPushResult.Success;
+        }
+
+        if (subscriptionsToRemove.Count == subscriptions.Count)
+        {
+            return WebPushResult.AllInvalid;
+        }
+
+        return WebPushResult.Failure;
     }
 }

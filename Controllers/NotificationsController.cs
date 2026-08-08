@@ -103,6 +103,23 @@ public class NotificationsController : Controller
 
         return Json(new { success = true });
     }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendTest([FromServices] IWebPushNotificationService pushService)
+    {
+        var account = await _accountContext.GetCurrentAccountAsync();
+        if (account == null) return Unauthorized();
+
+        var result = await pushService.SendNotificationAsync(
+            accountId: account.Id,
+            title: "PocketFlow",
+            body: "Las notificaciones funcionan correctamente.",
+            url: "/Dashboard",
+            tag: "pocketflow-test"
+        );
+
+        return Json(new { result = result.ToString() });
+    }
 }
 
 public class PushSubscriptionViewModel
